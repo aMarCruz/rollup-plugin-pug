@@ -4,7 +4,7 @@
 
 # rollup-plugin-pug
 
-[Rollup](https://github.com/rollup/rollup) plugin that transform [pug](http://jade-lang.com/) templates in es6 modules.
+[Rollup](https://github.com/rollup/rollup) plugin that transforms [pug](http://jade-lang.com/) templates in es6 modules.
 
 ## Installation
 
