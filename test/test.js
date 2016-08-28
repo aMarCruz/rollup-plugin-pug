@@ -9,9 +9,9 @@ if (typeof window === 'object') {
   global.myGlobal = 'GLOBAL';
 }
 
-process.chdir( __dirname );
+process.chdir(__dirname);
 
-function executeBundle ( bundle ) {
+function executeBundle (bundle) {
   var result = bundle.generate({
     format: 'cjs'
   });
@@ -45,7 +45,7 @@ describe('rollup-plugin-pug', function () {
     return rollup({
       entry: 'samples/global/main.js',
       plugins: [ _pug({
-        globals: ['myGlobal']
+        globals: [ 'myGlobal' ]
       }) ],
       external: [ 'pug-runtime' ]
     }).then(executeBundle);
