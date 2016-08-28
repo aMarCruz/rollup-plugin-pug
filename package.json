@@ -1,0 +1,46 @@
+{
+  "name": "rollup-plugin-pug",
+  "version": "0.0.1",
+  "description": "Rollup plugin for pug (jade)",
+  "main": "dist/rollup-plugin-pug.cjs.js",
+  "jsnext:main": "dist/rollup-plugin-pug.es.js",
+  "files": [
+    "dist/",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "npm run build:cjs && npm run build:es",
+    "build:cjs": "rollup -c -f cjs -o ./dist/rollup-plugin-pug.cjs.js",
+    "build:es": "rollup -c -f es -o ./dist/rollup-plugin-pug.es.js",
+    "test": "npm run build && mocha ./test/test.js",
+    "prepublish": "npm run lint && npm run build && npm test",
+    "lint": "eslint src"
+  },
+  "keywords": [
+    "rollup",
+    "rollup-plugin",
+    "javascript",
+    "es6",
+    "jade",
+    "pug"
+  ],
+  "author": "aMarCruz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aMarCruz/rollup-plugin-pug.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aMarCruz/rollup-plugin-pug/issues"
+  },
+  "homepage": "https://github.com/aMarCruz/rollup-plugin-pug#readme",
+  "dependencies": {
+    "pug": "^2.0.0-beta6",
+    "rollup-pluginutils": "^1.5.1"
+  },
+  "devDependencies": {
+    "eslint": "^3.3.1",
+    "mocha": "^3.0.2",
+    "rollup": "^0.34.10"
+  }
+}
