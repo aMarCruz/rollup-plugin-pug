@@ -28,14 +28,16 @@ describe('rollup-plugin-pug', function () {
   it('compiles pug templates to funcions', function () {
     return rollup({
       entry: 'samples/basic/main.js',
-      plugins: [ _pug() ]
+      plugins: [ _pug() ],
+      external: [ 'pug-runtime' ]
     }).then(executeBundle);
   });
 
   it('inserts the includes into template', function () {
     return rollup({
       entry: 'samples/include/main.js',
-      plugins: [ _pug() ]
+      plugins: [ _pug() ],
+      external: [ 'pug-runtime' ]
     }).then(executeBundle);
   });
 
@@ -44,7 +46,8 @@ describe('rollup-plugin-pug', function () {
       entry: 'samples/global/main.js',
       plugins: [ _pug({
         globals: ['myGlobal']
-      }) ]
+      }) ],
+      external: [ 'pug-runtime' ]
     }).then(executeBundle);
   });
 

@@ -1,3 +1,7 @@
+[![Build Status][build-image]][build-url]
+[![npm Version][npm-image]][npm-url]
+[![License][license-image]][license-url]
+
 # rollup-plugin-pug
 
 [Rollup](https://github.com/rollup/rollup) plugin that transform [pug](http://jade-lang.com/) templates in es6 modules.
@@ -75,3 +79,10 @@ See the full list and explanation in the [API Documentation](http://jade-lang.co
 ## Licence
 
 MIT
+
+[build-image]:    https://img.shields.io/travis/aMarCruz/rollup-plugin-pug.svg
+[build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-pug
+[npm-image]:      https://img.shields.io/npm/v/rollup-plugin-pug.svg
+[npm-url]:        https://www.npmjs.com/package/rollup-plugin-pug
+[license-image]:  https://img.shields.io/npm/l/express.svg
+[license-url]:    https://github.com/aMarCruz/rollup-plugin-pug/blob/master/LICENSE
