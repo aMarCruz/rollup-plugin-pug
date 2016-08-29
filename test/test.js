@@ -3,12 +3,6 @@ var rollup = require('rollup').rollup;
 var assert = require('assert');
 var _pug   = require('../');
 
-if (typeof window === 'object') {
-  window.myGlobal = 'GLOBAL';
-} else {
-  global.myGlobal = 'GLOBAL';
-}
-
 process.chdir(__dirname);
 
 function executeBundle (bundle) {
@@ -43,9 +37,10 @@ describe('rollup-plugin-pug', function () {
 
   it('can access pug options', function () {
     return rollup({
-      entry: 'samples/global/main.js',
+      entry: 'samples/options/main.js',
       plugins: [ _pug({
-        globals: [ 'myGlobal' ]
+        doctype: 'strict',
+        pretty: '\t'
       }) ],
       external: [ 'pug-runtime' ]
     }).then(executeBundle);
