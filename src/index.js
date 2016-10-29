@@ -69,9 +69,10 @@ export default function pugPlugin (options) {
 
       opts.filename = id
 
-      if (opts.preCompile) {
+      if (config.staticPattern && config.staticPattern(id)) {
         fn = compile(code, opts)
-        body = JSON.stringify(fn(opts.locals))
+        body = JSON.stringify(fn(config.locals))
+
       } else {
         fn = compileClientWithDependenciesTracked(code, opts)
         body = fn.body
@@ -84,6 +85,7 @@ export default function pugPlugin (options) {
       const deps = fn.dependencies
       if (deps.length > 1) {
         const ins = {}
+
         deps.forEach((dep) => {
           if (dep in ins) return
           ins[dep] = 1
