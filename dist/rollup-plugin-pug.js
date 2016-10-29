@@ -1,6 +1,8 @@
-import { compileClientWithDependenciesTracked, compile } from 'pug';
-import { resolve, extname } from 'path';
-import { createFilter } from 'rollup-pluginutils';
+'use strict';
+
+var pug = require('pug');
+var path = require('path');
+var rollupPluginutils = require('rollup-pluginutils');
 
 /**
  * Creates a filter for the options `include`, `exclude`, and `extensions`.
@@ -15,7 +17,7 @@ import { createFilter } from 'rollup-pluginutils';
 function makeFilter (opts, exts) {
   if (!opts) { opts = {} }
 
-  var filt = createFilter(opts.include, opts.exclude)
+  var filt = rollupPluginutils.createFilter(opts.include, opts.exclude)
 
   exts = opts.extensions || exts || '*'
   if (exts !== '*') {
@@ -24,7 +26,7 @@ function makeFilter (opts, exts) {
   }
 
   return function (id) {
-    return filt(id) && (exts === '*' || exts.indexOf(extname(id)) > -1)
+    return filt(id) && (exts === '*' || exts.indexOf(path.extname(id)) > -1)
   }
 }
 
@@ -101,7 +103,7 @@ function pugPlugin (options) {
   config.inlineRuntimeFunctions = false
 
   if (!config.preCompile) {
-    config.pugRuntime = resolve(__dirname, './runtime.es.js')
+    config.pugRuntime = path.resolve(__dirname, './runtime.es.js')
   }
 
   return {
@@ -125,10 +127,10 @@ function pugPlugin (options) {
       opts.filename = id
 
       if (opts.preCompile) {
-        fn = compile(code, opts)
+        fn = pug.compile(code, opts)
         body = JSON.stringify(fn(opts.locals))
       } else {
-        fn = compileClientWithDependenciesTracked(code, opts)
+        fn = pug.compileClientWithDependenciesTracked(code, opts)
         body = fn.body
 
         if (~body.indexOf('pug.')) {
@@ -154,5 +156,5 @@ function pugPlugin (options) {
   }
 }
 
-export default pugPlugin;
-//# sourceMappingURL=rollup-plugin-pug.es.js.map
+module.exports = pugPlugin;
+//# sourceMappingURL=rollup-plugin-pug.js.map

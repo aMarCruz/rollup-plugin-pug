@@ -1,0 +1,14 @@
+env:
+  mocha: true
+
+parserOptions:
+  ecmaVersion: 5
+
+globals:
+  assert: true
+  window: true
+
+rules:
+  no-debugger: 0
+  no-console: 0
+  no-var: 0

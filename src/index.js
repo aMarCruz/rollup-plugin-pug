@@ -1,56 +1,100 @@
-import { createFilter } from 'rollup-pluginutils';
-import { compileClient } from 'pug';
-import { extname } from 'path';
 
-export default function pug (options) {
-  if (!options) options = {};
+/* eslint no-console:0 */
 
-  var EXCL_PROPS = ['extensions', 'include', 'exclude'];
+import { compile, compileClientWithDependenciesTracked } from 'pug'
+import { resolve } from 'path'
+import makeFilter from './filter'
+import assign from './assign'
+
+// used pug options, note this list does not include 'name'
+const PUGPROPS = [
+  'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
+  'debug', 'compileDebug', 'globals', 'inlineRuntimeFunctions'
+]
+
+// perform a deep cloning of an object
+function clone (obj) {
+  if (obj == null || typeof obj != 'object') return obj
+  const copy = obj.constructor()
+  for (const attr in obj) {
+    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr])
+  }
+  return copy
+}
+
+// deep copy of the properties filtered by list
+function cloneProps (src, list) {
+  return list.reduce((o, p) => {
+    if (p in src) o[p] = clone(src[p])
+    return o
+  }, {})
+}
+
+// rollup-plugin-pug --------------------------------------
+
+export default function pugPlugin (options) {
+  if (!options) options = {}
 
   // prepare extensions to match with the extname() result
-  function normalizeExtensions (exts) {
-    if (exts) {
-      for (var i = 0; i < exts.length; i++) {
-        var ext = exts[i].toLowerCase();
-        exts[i] = ext[0] !== '.' ? '.' + ext : ext;
-      }
-    } else {
-      exts = ['.jade', '.pug'];
-    }
-    return exts;
-  }
+  const filter = makeFilter(options, ['.pug', '.jade'])
 
-  // clone options & drop properties not necessary for pug compiler
-  function normalizeOptions (opts) {
-    var dest = {
-      doctype: 'html',
-      name: 'template',
-      compileDebug: false,
-      inlineRuntimeFunctions: false
-    };
-    for (var p in opts) {
-      if (opts.hasOwnProperty(p) && EXCL_PROPS.indexOf(p) === -1) {
-        dest[p] = opts[p];
-      }
-    }
-    dest.globals = ['require'].concat(opts.globals || []);
+  // shallow copy options & drop properties unused props
+  const config = assign({
+    doctype: 'html',
+    basedir: process.cwd(),
+    compileDebug: false,
+    staticPattern: /\.static\.(?:pug|jade)$/,
+    locals: {}
+  }, options)
 
-    return dest;
-  }
-
-  var extensions = normalizeExtensions(options.extensions);
-  var filter = createFilter(options.include, options.exclude);
-  var opts = normalizeOptions(options);
+  config.inlineRuntimeFunctions = false
+  config.pugRuntime = resolve(__dirname, './runtime.es.js')
 
   return {
-    transform (code, id) {
-      if (filter(id) && ~extensions.indexOf(extname(id).toLowerCase())) {
-        opts.filename = id;
-        return 'import pug from "pug-runtime";\n' +
-          'export default ' + compileClient(code, opts);
-      }
-      return null;
+
+    name: 'rollup-plugin-pug',
+
+    resolveId (importee) {
+      if (/\0pug-runtime$/.test(importee)) return config.pugRuntime
     },
-    name: 'rollup-plugin-pug'
-  };
+
+    transform (code, id) {
+      if (!filter(id)) {
+        return null
+      }
+
+      const opts   = cloneProps(config, PUGPROPS)
+      const output = []
+      let fn, body
+
+      opts.filename = id
+
+      if (opts.preCompile) {
+        fn = compile(code, opts)
+        body = JSON.stringify(fn(opts.locals))
+      } else {
+        fn = compileClientWithDependenciesTracked(code, opts)
+        body = fn.body
+
+        if (~body.indexOf('pug.')) {
+          output.push('import pug from "\0pug-runtime";')
+        }
+      }
+
+      const deps = fn.dependencies
+      if (deps.length > 1) {
+        const ins = {}
+        deps.forEach((dep) => {
+          if (dep in ins) return
+          ins[dep] = 1
+          output.push(`import "${dep}";`)
+        })
+      }
+
+      output.push(`export default ${body}`)
+
+      return output.join('\n') + '\n'
+    }
+
+  }
 }
