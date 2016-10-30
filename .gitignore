@@ -39,3 +39,6 @@ jspm_packages
 # VS Code
 .vscode
 jsconfig.json
+
+# map files
+dist/*.map

@@ -12,9 +12,9 @@
   ],
   "scripts": {
     "test": "mocha test/run",
-    "pretest": "npm run lint && npm run build",
+    "pretest": "npm run build",
     "build": "rm -rf dist/* && node build-rt && rollup -c",
-    "prepublish": "npm test",
+    "prepublish": "npm run lint && npm test",
     "lint": "eslint src/*.js test/run.js"
   },
   "keywords": [
