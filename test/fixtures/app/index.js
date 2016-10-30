@@ -1,3 +1,9 @@
 /* eslint no-console:0 */
 import fn from './index.pug'
-console.log(fn())
+import login from './login'
+
+const html = fn()
+
+assert(html.contains('Article'))
+
+login()

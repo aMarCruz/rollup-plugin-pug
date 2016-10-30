@@ -1,8 +1,5 @@
-
-/* eslint no-console:0 */
-
 import { compile, compileClientWithDependenciesTracked } from 'pug'
-import { resolve } from 'path'
+import { resolve, dirname } from 'path'
 import makeFilter from './filter'
 import assign from './assign'
 
@@ -41,18 +38,27 @@ export default function pugPlugin (options) {
   // shallow copy options & drop properties unused props
   const config = assign({
     doctype: 'html',
-    basedir: process.cwd(),
     compileDebug: false,
     staticPattern: /\.static\.(?:pug|jade)$/,
     locals: {}
   }, options)
 
   config.inlineRuntimeFunctions = false
-  config.pugRuntime = resolve(__dirname, './runtime.es.js')
+  config.pugRuntime = resolve(__dirname, 'runtime.es.js')
+
+  function matchStaticPattern (file) {
+    return config.staticPattern && config.staticPattern.test(file)
+  }
 
   return {
 
     name: 'rollup-plugin-pug',
+
+    options (opts) {
+      if (!config.basedir) {
+        config.basedir = dirname(resolve(opts.entry || '~'))
+      }
+    },
 
     resolveId (importee) {
       if (/\0pug-runtime$/.test(importee)) return config.pugRuntime
@@ -69,15 +75,15 @@ export default function pugPlugin (options) {
 
       opts.filename = id
 
-      if (config.staticPattern && config.staticPattern(id)) {
+      if (matchStaticPattern(id)) {
         fn = compile(code, opts)
         body = JSON.stringify(fn(config.locals))
 
       } else {
         fn = compileClientWithDependenciesTracked(code, opts)
-        body = fn.body
+        body = fn.body.replace('function template(', 'function(')
 
-        if (~body.indexOf('pug.')) {
+        if (/\bpug\./.test(body)) {
           output.push('import pug from "\0pug-runtime";')
         }
       }
@@ -88,8 +94,7 @@ export default function pugPlugin (options) {
 
         deps.forEach((dep) => {
           if (dep in ins) return
-          ins[dep] = 1
-          output.push(`import "${dep}";`)
+          ins[dep] = output.push(`import "${dep}";`)
         })
       }
 
@@ -97,6 +102,5 @@ export default function pugPlugin (options) {
 
       return output.join('\n') + '\n'
     }
-
   }
 }

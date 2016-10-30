@@ -10,7 +10,7 @@
 ## Installation
 
 ```bash
-npm install --save-dev rollup-plugin-pug
+npm install rollup-plugin-pug --save-dev
 ```
 
 **Important:** See [What's New](#whats-new) for major changes in this version.
@@ -34,7 +34,15 @@ const context = { message: 'Hello World' };
 console.log(template(context));  // <p>Hello World</p>
 ```
 
-And build with something like...
+or rename the template to 'template.static.pug'
+
+```js
+import template from './template.static.pug';
+
+console.log(template);  // <p>Hello World</p>
+```
+
+and build with something like...
 
 ```js
 import { rollup } from 'rollup';
@@ -43,16 +51,10 @@ import pug from 'rollup-plugin-pug';
 rollup({
   entry: 'src/main.js',
   plugins: [
-    pug({
-      // generate pre-evaluated HTML by using staticPattern
-      staticPattern: /\/assets\//,
-      // ...with values passed through the locals object
-      locals: { appName: 'My App' }
-      // use `include` and `exclude` to filter the files to compile
-      include: 'src/components/**.pug',
-      // You can use native pug options as well.
-      pretty: true
-    })
+    pug(
+      // your options here
+      locals: { message: 'Hello World' }
+    )
   ]
 }).then(...)
 ```
@@ -62,9 +64,9 @@ That's it.
 
 ## Options
 
-In addition to the regular pug options, the plugin defines this:
+In addition to the regular pug options, the plugin defines these:
 
-- `staticPattern` - Regex for files to compile and evaluate at build time that exports plain HTML.
+- `staticPattern` - Regex for files to compile and evaluate at build time to export plain HTML.
 - `locals` - Plain JavaScript object with values passed to the compiler for static compilation.
 - `include` - minimatch or array of minimatch with files that should be included by default.
 - `exclude` - minimatch or array of minimatch with files that should be excluded by default.
@@ -72,30 +74,31 @@ In addition to the regular pug options, the plugin defines this:
 
 **Tip:** Use `staticPattern: /\S/` to evaluate all the templates at build time.
 
-The plugin is using the following pug options as defaults:
+The plugin has preset the following options:
 
 ```js
 {
   doctype: 'html',
-  compileDebug: false,
-  inlineRuntimeFunctions: false,
+  basedir: absolute(entry),       // absolute path of your rollup `entry` file
+  compileDebug: false,            // `true` is recommended for development
+  inlineRuntimeFunctions: false,  // forced, there's no reason to inline functions
   extensions: ['.pug', '.jade'],
   staticPattern: /\.static\.(?:pug|jade)$/
 }
 ```
 
-The `inlineRuntimeFunctions` is forced, there's no reason to inline the runtime.
+Perhaps the most important option that you need to review is `basedir`.
 
 See the full list and explanation in the [API Documentation](https://pugjs.org/api/reference.html) of the pug site.
 
 
 ## What's New
 
-Files from the `extend` and `include` directives are imported by the template, so changes in this dependencies will update the template (See issue [#3](https://github.com/aMarCruz/rollup-plugin-pug/issues/3)).
-
-The new property `staticPattern` is used to compile and evaluate the template using the values given by `locals`, as it produces plain HTML the loading of templates is faster, useful in SSR.
-
-Regular dynamic templates requires the "pug-runtime" package; from v0.1.0, the plugin imports an internal version of pug-runtime *if* is neccesary, so you don't have to worry about this.
+- Now the plugin imports an internal version of the pug-runtime *if* is necessary, so you don't have to worry about this anymore.
+- The `basedir` option default to the absolute path of your rollup `entry` file.
+- The new property `locals` is a plain JavaScript object with values passed to the compiler for static compilation.
+- The new property `staticPattern` is a regex that matches filenames to compile and evaluate at build time to produce plain HTML, so the loading of templates is faster, useful in SSR.
+- Files from the `extend` and `include` directives are imported by the template, so changes in this dependencies must update the template in watch mode - See issue [#3](https://github.com/aMarCruz/rollup-plugin-pug/issues/3).
 
 
 ## Licence

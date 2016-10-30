@@ -58,8 +58,6 @@ function assign (dest) {
   return dest
 }
 
-/* eslint no-console:0 */
-
 // used pug options, note this list does not include 'name'
 var PUGPROPS = [
   'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
@@ -95,23 +93,29 @@ function pugPlugin (options) {
   // shallow copy options & drop properties unused props
   var config = assign({
     doctype: 'html',
-    basedir: process.cwd(),
     compileDebug: false,
+    staticPattern: /\.static\.(?:pug|jade)$/,
     locals: {}
   }, options)
 
   config.inlineRuntimeFunctions = false
+  config.pugRuntime = path.resolve(__dirname, 'runtime.es.js')
 
-  if (!config.preCompile) {
-    config.pugRuntime = path.resolve(__dirname, './runtime.es.js')
+  function matchStaticPattern (file) {
+    return config.staticPattern && config.staticPattern.test(file)
   }
 
   return {
 
     name: 'rollup-plugin-pug',
 
-    resolveId: function resolveId (importee, importer) {
-      console.log(("ìmportee: " + importee + ", importer: " + importer)) //eslint-disable-line
+    options: function options$1 (opts) {
+      if (!config.basedir) {
+        config.basedir = path.dirname(path.resolve(opts.entry || '~'))
+      }
+    },
+
+    resolveId: function resolveId (importee) {
       if (/\0pug-runtime$/.test(importee)) { return config.pugRuntime }
     },
 
@@ -126,14 +130,15 @@ function pugPlugin (options) {
 
       opts.filename = id
 
-      if (opts.preCompile) {
+      if (matchStaticPattern(id)) {
         fn = pug.compile(code, opts)
-        body = JSON.stringify(fn(opts.locals))
+        body = JSON.stringify(fn(config.locals))
+
       } else {
         fn = pug.compileClientWithDependenciesTracked(code, opts)
-        body = fn.body
+        body = fn.body.replace('function template(', 'function(')
 
-        if (~body.indexOf('pug.')) {
+        if (/\bpug\./.test(body)) {
           output.push('import pug from "\0pug-runtime";')
         }
       }
@@ -141,10 +146,10 @@ function pugPlugin (options) {
       var deps = fn.dependencies
       if (deps.length > 1) {
         var ins = {}
+
         deps.forEach(function (dep) {
           if (dep in ins) { return }
-          ins[dep] = 1
-          output.push(("import \"" + dep + "\";"))
+          ins[dep] = output.push(("import \"" + dep + "\";"))
         })
       }
 
@@ -152,7 +157,6 @@ function pugPlugin (options) {
 
       return output.join('\n') + '\n'
     }
-
   }
 }
 
