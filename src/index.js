@@ -1,5 +1,6 @@
 import { compile, compileClientWithDependenciesTracked } from 'pug'
 import { resolve, dirname } from 'path'
+import genSourceMap from 'gen-pug-source-map'
 import makeFilter from './filter'
 import assign from './assign'
 
@@ -38,10 +39,14 @@ export default function pugPlugin (options) {
   // shallow copy options & drop properties unused props
   const config = assign({
     doctype: 'html',
-    compileDebug: false,
+    compileDebug: true,
     staticPattern: /\.static\.(?:pug|jade)$/,
     locals: {}
   }, options)
+
+  if (!config.compileDebug) {
+    config.sourceMap = false
+  }
 
   config.inlineRuntimeFunctions = false
   config.pugRuntime = resolve(__dirname, 'runtime.es.js')
@@ -71,7 +76,8 @@ export default function pugPlugin (options) {
 
       const opts   = cloneProps(config, PUGPROPS)
       const output = []
-      let fn, body
+
+      let fn, body, map
 
       opts.filename = id
 
@@ -86,6 +92,7 @@ export default function pugPlugin (options) {
         if (/\bpug\./.test(body)) {
           output.push('import pug from "\0pug-runtime";')
         }
+        map = config.sourceMap !== false
       }
 
       const deps = fn.dependencies
@@ -100,7 +107,14 @@ export default function pugPlugin (options) {
 
       output.push(`export default ${body}`)
 
-      return output.join('\n') + '\n'
+      body = output.join('\n') + '\n'
+
+      if (map) {
+        const bundle = genSourceMap(id, code, body)
+        return { code: bundle.data, map: bundle.map }
+      }
+
+      return body
     }
   }
 }

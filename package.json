@@ -37,6 +37,7 @@
     "url": "https://github.com/aMarCruz/rollup-plugin-pug/issues"
   },
   "dependencies": {
+    "gen-pug-source-map": "^0.1.0",
     "pug": "^2.0.0-beta6",
     "rollup-pluginutils": "^1.5.2"
   },

@@ -1,7 +1,10 @@
 'use strict';
 
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
 var pug = require('pug');
 var path = require('path');
+var genSourceMap = _interopDefault(require('gen-pug-source-map'));
 var rollupPluginutils = require('rollup-pluginutils');
 
 /**
@@ -15,14 +18,14 @@ var rollupPluginutils = require('rollup-pluginutils');
  *                       file matches the filter.
  */
 function makeFilter (opts, exts) {
-  if (!opts) { opts = {} }
+  if (!opts) { opts = {}; }
 
-  var filt = rollupPluginutils.createFilter(opts.include, opts.exclude)
+  var filt = rollupPluginutils.createFilter(opts.include, opts.exclude);
 
-  exts = opts.extensions || exts || '*'
+  exts = opts.extensions || exts || '*';
   if (exts !== '*') {
-    if (!Array.isArray(exts)) { exts = [exts] }
-    exts = exts.map(function (e) { return e[0] !== '.' ? ("." + e) : e })
+    if (!Array.isArray(exts)) { exts = [exts]; }
+    exts = exts.map(function (e) { return e[0] !== '.' ? ("." + e) : e });
   }
 
   return function (id) {
@@ -37,20 +40,20 @@ function makeFilter (opts, exts) {
  * @returns {Object}   object with merged properties
  */
 function assign (dest) {
-  var args = arguments
+  var args = arguments;
 
-  dest = dest && Object(dest) || {}
+  dest = dest && Object(dest) || {};
 
   for (var i = 1; i < args.length; i++) {
-    var src = args[i]
+    var src = args[i];
 
     if (src) {
-      var keys = Object.keys(Object(src))
+      var keys = Object.keys(Object(src));
 
       for (var j = 0; j < keys.length; j++) {
-        var p = keys[j]
+        var p = keys[j];
 
-        dest[p] = src[p]
+        dest[p] = src[p];
       }
     }
   }
@@ -62,14 +65,14 @@ function assign (dest) {
 var PUGPROPS = [
   'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
   'debug', 'compileDebug', 'globals', 'inlineRuntimeFunctions'
-]
+];
 
 // perform a deep cloning of an object
 function clone (obj) {
   if (obj == null || typeof obj != 'object') { return obj }
-  var copy = obj.constructor()
+  var copy = obj.constructor();
   for (var attr in obj) {
-    if (obj.hasOwnProperty(attr)) { copy[attr] = clone(obj[attr]) }
+    if (obj.hasOwnProperty(attr)) { copy[attr] = clone(obj[attr]); }
   }
   return copy
 }
@@ -77,7 +80,7 @@ function clone (obj) {
 // deep copy of the properties filtered by list
 function cloneProps (src, list) {
   return list.reduce(function (o, p) {
-    if (p in src) { o[p] = clone(src[p]) }
+    if (p in src) { o[p] = clone(src[p]); }
     return o
   }, {})
 }
@@ -85,21 +88,25 @@ function cloneProps (src, list) {
 // rollup-plugin-pug --------------------------------------
 
 function pugPlugin (options) {
-  if (!options) { options = {} }
+  if (!options) { options = {}; }
 
   // prepare extensions to match with the extname() result
-  var filter = makeFilter(options, ['.pug', '.jade'])
+  var filter = makeFilter(options, ['.pug', '.jade']);
 
   // shallow copy options & drop properties unused props
   var config = assign({
     doctype: 'html',
-    compileDebug: false,
+    compileDebug: true,
     staticPattern: /\.static\.(?:pug|jade)$/,
     locals: {}
-  }, options)
+  }, options);
 
-  config.inlineRuntimeFunctions = false
-  config.pugRuntime = path.resolve(__dirname, 'runtime.es.js')
+  if (!config.compileDebug) {
+    config.sourceMap = false;
+  }
+
+  config.inlineRuntimeFunctions = false;
+  config.pugRuntime = path.resolve(__dirname, 'runtime.es.js');
 
   function matchStaticPattern (file) {
     return config.staticPattern && config.staticPattern.test(file)
@@ -111,7 +118,7 @@ function pugPlugin (options) {
 
     options: function options$1 (opts) {
       if (!config.basedir) {
-        config.basedir = path.dirname(path.resolve(opts.entry || '~'))
+        config.basedir = path.dirname(path.resolve(opts.entry || '~'));
       }
     },
 
@@ -124,38 +131,47 @@ function pugPlugin (options) {
         return null
       }
 
-      var opts   = cloneProps(config, PUGPROPS)
-      var output = []
-      var fn, body
+      var opts   = cloneProps(config, PUGPROPS);
+      var output = [];
 
-      opts.filename = id
+      var fn, body, map;
+
+      opts.filename = id;
 
       if (matchStaticPattern(id)) {
-        fn = pug.compile(code, opts)
-        body = JSON.stringify(fn(config.locals))
+        fn = pug.compile(code, opts);
+        body = JSON.stringify(fn(config.locals));
 
       } else {
-        fn = pug.compileClientWithDependenciesTracked(code, opts)
-        body = fn.body.replace('function template(', 'function(')
+        fn = pug.compileClientWithDependenciesTracked(code, opts);
+        body = fn.body.replace('function template(', 'function(');
 
         if (/\bpug\./.test(body)) {
-          output.push('import pug from "\0pug-runtime";')
+          output.push('import pug from "\0pug-runtime";');
         }
+        map = config.sourceMap !== false;
       }
 
-      var deps = fn.dependencies
+      var deps = fn.dependencies;
       if (deps.length > 1) {
-        var ins = {}
+        var ins = {};
 
         deps.forEach(function (dep) {
           if (dep in ins) { return }
-          ins[dep] = output.push(("import \"" + dep + "\";"))
-        })
+          ins[dep] = output.push(("import \"" + dep + "\";"));
+        });
       }
 
-      output.push(("export default " + body))
+      output.push(("export default " + body));
 
-      return output.join('\n') + '\n'
+      body = output.join('\n') + '\n';
+
+      if (map) {
+        var bundle = genSourceMap(id, code, body);
+        return { code: bundle.data, map: bundle.map }
+      }
+
+      return body
     }
   }
 }

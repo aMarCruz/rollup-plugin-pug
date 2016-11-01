@@ -70,7 +70,8 @@ In addition to the regular pug options, the plugin defines these:
 - `locals` - Plain JavaScript object with values passed to the compiler for static compilation.
 - `include` - minimatch or array of minimatch with files that should be included by default.
 - `exclude` - minimatch or array of minimatch with files that should be excluded by default.
-- `extensions` - array of extensions to process (don't use wildcards here).
+- `extensions` - Array of extensions to process (don't use wildcards here).
+- `sourceMap` - Experimental, enabled by default, but only works if `compileDebug = true`.
 
 **Tip:** Use `staticPattern: /\S/` to evaluate all the templates at build time.
 
@@ -80,7 +81,8 @@ The plugin has preset the following options:
 {
   doctype: 'html',
   basedir: absolute(entry),       // absolute path of your rollup `entry` file
-  compileDebug: false,            // `true` is recommended for development
+  compileDebug: true,             // `true` is recommended for development
+  sourceMap: true,                // unless compileDebug:false
   inlineRuntimeFunctions: false,  // forced, there's no reason to inline functions
   extensions: ['.pug', '.jade'],
   staticPattern: /\.static\.(?:pug|jade)$/
@@ -98,6 +100,8 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 - The `basedir` option default to the absolute path of your rollup `entry` file.
 - The new property `locals` is a plain JavaScript object with values passed to the compiler for static compilation.
 - The new property `staticPattern` is a regex that matches filenames to compile and evaluate at build time to produce plain HTML, so the loading of templates is faster, useful in SSR.
+- Experimental support for source maps, only for dynamic tags and if compileDebug is `true`
+- Now `compileDebug` defaults to `true` to allow source map generation.
 - Files from the `extend` and `include` directives are imported by the template, so changes in this dependencies must update the template in watch mode - See issue [#3](https://github.com/aMarCruz/rollup-plugin-pug/issues/3).
 
 

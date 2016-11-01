@@ -1,5 +1,8 @@
 # Changes to rollup-plugin-pug
 
+### 2016-10-31 v0.1.0
+- Experimental support for source maps.
+
 ### 2016-10-29 v0.1.0
 Complete rewrite, WIP
 
