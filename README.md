@@ -100,7 +100,7 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 - The `basedir` option default to the absolute path of your rollup `entry` file.
 - The new property `locals` is a plain JavaScript object with values passed to the compiler for static compilation.
 - The new property `staticPattern` is a regex that matches filenames to compile and evaluate at build time to produce plain HTML, so the loading of templates is faster, useful in SSR.
-- Experimental support for source maps, only for dynamic tags and if compileDebug is `true`
+Experimental support for source maps, only for dynamic templates and if `compileDebug` is `true`.
 - Now `compileDebug` defaults to `true` to allow source map generation.
 - Files from the `extend` and `include` directives are imported by the template, so changes in this dependencies must update the template in watch mode - See issue [#3](https://github.com/aMarCruz/rollup-plugin-pug/issues/3).
 
