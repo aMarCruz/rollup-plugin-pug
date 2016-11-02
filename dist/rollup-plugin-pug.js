@@ -96,17 +96,20 @@ function pugPlugin (options) {
   // shallow copy options & drop properties unused props
   var config = assign({
     doctype: 'html',
-    compileDebug: true,
+    compileDebug: false,
     staticPattern: /\.static\.(?:pug|jade)$/,
     locals: {}
   }, options);
 
-  if (!config.compileDebug) {
-    config.sourceMap = false;
-  }
 
   config.inlineRuntimeFunctions = false;
-  config.pugRuntime = path.resolve(__dirname, 'runtime.es.js');
+  config.pugRuntime     = path.resolve(__dirname, 'runtime.es.js');
+  config.sourceMap      = config.sourceMap !== false;
+  config._compileDebug  = config.compileDebug;
+
+  if (config.sourceMap && !config.compileDebug) {
+    config.compileDebug = true;
+  }
 
   function matchStaticPattern (file) {
     return config.staticPattern && config.staticPattern.test(file)
@@ -134,7 +137,7 @@ function pugPlugin (options) {
       var opts   = cloneProps(config, PUGPROPS);
       var output = [];
 
-      var fn, body, map;
+      var fn, body, map, keepDbg;
 
       opts.filename = id;
 
@@ -143,13 +146,15 @@ function pugPlugin (options) {
         body = JSON.stringify(fn(config.locals));
 
       } else {
+        keepDbg = opts.compileDebug;
+        if (config.sourceMap) { opts.compileDebug = map = true; }
+
         fn = pug.compileClientWithDependenciesTracked(code, opts);
         body = fn.body.replace('function template(', 'function(');
 
         if (/\bpug\./.test(body)) {
           output.push('import pug from "\0pug-runtime";');
         }
-        map = config.sourceMap !== false;
       }
 
       var deps = fn.dependencies;
@@ -167,7 +172,10 @@ function pugPlugin (options) {
       body = output.join('\n') + '\n';
 
       if (map) {
-        var bundle = genSourceMap(id, code, body);
+        var bundle = genSourceMap(id, body, {
+          basedir: opts.basedir,
+          keepDebugLines: keepDbg
+        });
         return { code: bundle.data, map: bundle.map }
       }
 

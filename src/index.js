@@ -39,17 +39,20 @@ export default function pugPlugin (options) {
   // shallow copy options & drop properties unused props
   const config = assign({
     doctype: 'html',
-    compileDebug: true,
+    compileDebug: false,
     staticPattern: /\.static\.(?:pug|jade)$/,
     locals: {}
   }, options)
 
-  if (!config.compileDebug) {
-    config.sourceMap = false
-  }
 
   config.inlineRuntimeFunctions = false
-  config.pugRuntime = resolve(__dirname, 'runtime.es.js')
+  config.pugRuntime     = resolve(__dirname, 'runtime.es.js')
+  config.sourceMap      = config.sourceMap !== false
+  config._compileDebug  = config.compileDebug
+
+  if (config.sourceMap && !config.compileDebug) {
+    config.compileDebug = true
+  }
 
   function matchStaticPattern (file) {
     return config.staticPattern && config.staticPattern.test(file)
@@ -77,7 +80,7 @@ export default function pugPlugin (options) {
       const opts   = cloneProps(config, PUGPROPS)
       const output = []
 
-      let fn, body, map
+      let fn, body, map, keepDbg
 
       opts.filename = id
 
@@ -86,13 +89,15 @@ export default function pugPlugin (options) {
         body = JSON.stringify(fn(config.locals))
 
       } else {
+        keepDbg = opts.compileDebug
+        if (config.sourceMap) opts.compileDebug = map = true
+
         fn = compileClientWithDependenciesTracked(code, opts)
         body = fn.body.replace('function template(', 'function(')
 
         if (/\bpug\./.test(body)) {
           output.push('import pug from "\0pug-runtime";')
         }
-        map = config.sourceMap !== false
       }
 
       const deps = fn.dependencies
@@ -110,7 +115,10 @@ export default function pugPlugin (options) {
       body = output.join('\n') + '\n'
 
       if (map) {
-        const bundle = genSourceMap(id, code, body)
+        const bundle = genSourceMap(id, body, {
+          basedir: opts.basedir,
+          keepDebugLines: keepDbg
+        })
         return { code: bundle.data, map: bundle.map }
       }
 

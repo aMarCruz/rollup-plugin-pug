@@ -1,5 +1,9 @@
 # Changes to rollup-plugin-pug
 
+### 2016-11-02 v0.1.1
+- sourceMap is enabled without the `compileDebug`, regression of this option to `false`.
+- Updated gen-pug-source-map dev dependency to v0.1.1 almost ready for production.
+
 ### 2016-10-31 v0.1.0
 - Experimental support for source maps.
 
