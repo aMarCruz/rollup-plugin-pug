@@ -48,11 +48,6 @@ export default function pugPlugin (options) {
   config.inlineRuntimeFunctions = false
   config.pugRuntime     = resolve(__dirname, 'runtime.es.js')
   config.sourceMap      = config.sourceMap !== false
-  config._compileDebug  = config.compileDebug
-
-  if (config.sourceMap && !config.compileDebug) {
-    config.compileDebug = true
-  }
 
   function matchStaticPattern (file) {
     return config.staticPattern && config.staticPattern.test(file)

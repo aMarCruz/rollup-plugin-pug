@@ -8,7 +8,7 @@
 
 * Dynamic generation of HTML. Static HTML is optional and configurable.
 * Automatic `import` of the pug-runtime in your bundle, if required.
-* Automatic `import` of template dependencies (`extends` and `includes`).
+* Automatic `import` of template `extends` and `includes`.
 * **Source map support**.
 
 ## Installation
