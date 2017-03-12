@@ -1,5 +1,10 @@
 # Changes to rollup-plugin-pug
 
+### 2017-03-11 v0.1.3
+- For static compilation, all the compiler options is passed through the `_pug_options` value to the template.
+- Using the lastest Pug version.
+- Updated devDependencies.
+
 ### 2016-11-02 v0.1.2
 - Minor fix to `compileDebug` forced to `true` on source map generation.
 

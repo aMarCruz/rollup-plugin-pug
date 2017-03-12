@@ -4,12 +4,30 @@ var buble  = require('rollup-plugin-buble')
 var assert = require('assert')
 var _pug   = require('../')
 
+var WRITE_BUNDLE = true
+
 process.chdir(__dirname)
 
-function executeBundle (bundle) {
+try {
+  require('fs').mkdirSync('./~tmp')
+} catch (err) {
+  if (err.code !== 'EEXIST') {
+    throw err
+  }
+}
+
+function writeBundle (bundle, name) {
+  if (WRITE_BUNDLE && name) {
+    bundle.write({ format: 'cjs', dest: '~tmp/' + name + '.js' })
+  }
+}
+
+
+function executeBundle (bundle, name) {
   var result = bundle.generate({
     format: 'cjs'
   })
+  writeBundle(bundle, name)
 
   // eslint-disable-next-line no-new-func
   var fn = new Function('require', 'module', 'assert', result.code)
@@ -26,7 +44,7 @@ describe('rollup-plugin-pug', function () {
       plugins: [_pug(), buble()]
     })
     .then(function (bundle) {
-      executeBundle(bundle)
+      executeBundle(bundle, 'basic')
       done()
     })
     .catch(done)
@@ -38,7 +56,7 @@ describe('rollup-plugin-pug', function () {
       plugins: [_pug(), buble()]
     })
     .then(function (bundle) {
-      executeBundle(bundle)
+      executeBundle(bundle, 'include')
       done()
     })
     .catch(done)
@@ -53,7 +71,7 @@ describe('rollup-plugin-pug', function () {
       })]
     })
     .then(function (bundle) {
-      executeBundle(bundle)
+      executeBundle(bundle, 'options')
       done()
     })
     .catch(done)
@@ -63,11 +81,12 @@ describe('rollup-plugin-pug', function () {
     rollup({
       entry: 'fixtures/precompile/main.js',
       plugins: [_pug({
+        other: 'other',
         locals: { name: 'pug' }
       })]
     })
     .then(function (bundle) {
-      executeBundle(bundle)
+      executeBundle(bundle, 'precompile')
       done()
     })
     .catch(done)
@@ -82,6 +101,8 @@ describe('rollup-plugin-pug', function () {
       var result = bundle.generate({
         format: 'es'
       })
+      writeBundle(bundle, 'app')
+
       assert(~result.code.indexOf('Article'))
 
       done()

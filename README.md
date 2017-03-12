@@ -4,7 +4,7 @@
 
 # rollup-plugin-pug
 
-[Rollup](https://github.com/rollup/rollup) plugin that transforms [Pug](http://jade-lang.com/) v2 (aka Jade) templates to ES6 modules.
+[Rollup](https://github.com/rollup/rollup) plugin that transforms [Pug](https://pugjs.org) v2 (aka Jade) templates to ES6 modules.
 
 * Dynamic generation of HTML. Static HTML is optional and configurable.
 * Automatic `import` of the pug-runtime in your bundle, if required.
@@ -16,8 +16,6 @@
 ```bash
 npm install rollup-plugin-pug --save-dev
 ```
-
-**Important:** See [What's New](#whats-new) for major changes in this version.
 
 ## Usage
 
@@ -100,14 +98,7 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 
 ## What's New
 
-- Now the plugin imports an internal version of the pug-runtime *if* is necessary, so you don't have to worry about this anymore.
-- The `basedir` option default to the absolute path of your rollup `entry` file.
-- The new property `locals` is a plain JavaScript object with values passed to the compiler for static compilation.
-- The new property `staticPattern` is a regex that matches filenames to compile and evaluate at build time to produce plain HTML, so the loading of templates is faster, useful in SSR.
-- Support for source maps for dynamic templates, with or without `compileDebug` option.
-- Regression of `compileDebug` defaults to `false`, the plugin set this as necessary.
-- Files from the `extend` and `include` directives are imported by the template, so changes in this dependencies must update the template in watch mode - See issue [#3](https://github.com/aMarCruz/rollup-plugin-pug/issues/3).
-
+- Using the lastest Pug version.
 
 ## Licence
 

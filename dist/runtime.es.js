@@ -32,7 +32,7 @@ export default (function(exports){
       } else if (key === 'style') {
         var valA = pug_style(a[key]);
         var valB = pug_style(b[key]);
-        a[key] = valA + (valA && valB && ';') + valB;
+        a[key] = valA + valB;
       } else {
         a[key] = b[key];
       }
@@ -101,18 +101,18 @@ export default (function(exports){
   function pug_style(val) {
     if (!val) return '';
     if (typeof val === 'object') {
-      var out = '', delim = '';
+      var out = '';
       for (var style in val) {
         /* istanbul ignore else */
         if (pug_has_own_property.call(val, style)) {
-          out = out + delim + style + ':' + val[style];
-          delim = ';';
+          out = out + style + ':' + val[style] + ';';
         }
       }
       return out;
     } else {
-      val = '' + val;
-      if (val[val.length - 1] === ';') return val.slice(0, -1);
+      val += '';
+      if (val[val.length - 1] !== ';') 
+        return val + ';';
       return val;
     }
   };
