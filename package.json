@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-pug",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Transforms Pug (aka Jade) templates to ES6 modules.",
   "main": "dist/rollup-plugin-pug.js",
   "module": "dist/rollup-plugin-pug.es.js",
@@ -38,7 +38,7 @@
   },
   "dependencies": {
     "gen-pug-source-map": "^0.1.2",
-    "pug": ">=2.0.0-beta11 <3",
+    "pug": ">=2.0.0-rc.1 <3",
     "rollup-pluginutils": "^2.x"
   },
   "devDependencies": {

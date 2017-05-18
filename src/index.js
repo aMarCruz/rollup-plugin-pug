@@ -1,6 +1,7 @@
 import { compile, compileClientWithDependenciesTracked } from 'pug'
 import { resolve, dirname } from 'path'
 import genPugSourceMap from 'gen-pug-source-map'
+import moveImports from './move-imports'
 import makeFilter from './make-filter'
 import assign from './assign'
 
@@ -88,10 +89,8 @@ export default function pugPlugin (options) {
 
       if (matchStaticPattern(id)) {
 
-        // v1.0.3: include compiler options in locals as "options"
-        const locals = config.locals
-        locals._pug_options = assign({}, config)
-        delete locals._pug_options.locals
+        // v1.0.4: include pug options in locals as "pug_options"
+        const locals = assign({ pug_options: opts }, config.locals)
 
         fn = compile(code, opts)
         body = JSON.stringify(fn(locals)) + ';'
@@ -100,12 +99,13 @@ export default function pugPlugin (options) {
 
         keepDbg = opts.compileDebug
         if (config.sourceMap) opts.compileDebug = map = true
+        code = moveImports(code, output)
 
         fn = compileClientWithDependenciesTracked(code, opts)
         body = fn.body.replace('function template(', 'function(')
 
         if (/\bpug\./.test(body)) {
-          output.push("import pug from '\0pug-runtime';")
+          output.unshift("import pug from '\0pug-runtime';")
         }
       }
 

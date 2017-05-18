@@ -7,6 +7,19 @@ var path = require('path');
 var genPugSourceMap = _interopDefault(require('gen-pug-source-map'));
 var rollupPluginutils = require('rollup-pluginutils');
 
+var RE_IMPORTS = /^([ \t]*-)[ \t]*(import[ \t*{'"].*)/gm;
+
+var moveImports = function (code, imports) {
+
+  return code.replace(RE_IMPORTS, function (_, indent, _import) {
+    _import = _import.trim();
+    if (_import.slice(-1) !== ';') { _import += ';'; }
+    imports.push(_import);
+    return indent
+  })
+
+};
+
 /**
  * Creates a filter for the options `include`, `exclude`, and `extensions`.
  * It filter out names starting with `\0`.
@@ -145,10 +158,8 @@ function pugPlugin (options) {
 
       if (matchStaticPattern(id)) {
 
-        // v1.0.3: include compiler options in locals as "options"
-        var locals = config.locals;
-        locals._pug_options = assign({}, config);
-        delete locals._pug_options.locals;
+        // v1.0.4: include pug options in locals as "pug_options"
+        var locals = assign({ pug_options: opts }, config.locals);
 
         fn = pug.compile(code, opts);
         body = JSON.stringify(fn(locals)) + ';';
@@ -157,12 +168,13 @@ function pugPlugin (options) {
 
         keepDbg = opts.compileDebug;
         if (config.sourceMap) { opts.compileDebug = map = true; }
+        code = moveImports(code, output);
 
         fn = pug.compileClientWithDependenciesTracked(code, opts);
         body = fn.body.replace('function template(', 'function(');
 
         if (/\bpug\./.test(body)) {
-          output.push("import pug from '\0pug-runtime';");
+          output.unshift("import pug from '\0pug-runtime';");
         }
       }
 

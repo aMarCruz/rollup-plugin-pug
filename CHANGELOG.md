@@ -1,5 +1,8 @@
 # Changes to rollup-plugin-pug
 
+### 2017-05-18 v0.1.4
+- Support for ES6 `import` statements in one-line unbuffered code (starting with dash).
+
 ### 2017-03-11 v0.1.3
 - For static compilation, all the compiler options is passed through the `_pug_options` value to the template.
 - Using the lastest Pug version.

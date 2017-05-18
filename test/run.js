@@ -77,12 +77,23 @@ describe('rollup-plugin-pug', function () {
     .catch(done)
   })
 
+  it('move imports after a dash out of the pug function', function (done) {
+    rollup({
+      entry: 'fixtures/imports/main.js',
+      plugins: [_pug()]
+    })
+    .then(function (bundle) {
+      executeBundle(bundle, 'imports')
+      done()
+    })
+    .catch(done)
+  })
+
   it('has static compilation', function (done) {
     rollup({
       entry: 'fixtures/precompile/main.js',
       plugins: [_pug({
-        other: 'other',
-        locals: { name: 'pug' }
+        locals: { name: 'pug', other: 'other' }
       })]
     })
     .then(function (bundle) {
