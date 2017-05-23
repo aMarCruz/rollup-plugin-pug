@@ -107,6 +107,8 @@ export default function pugPlugin (options) {
         }
       }
 
+      // TODO this seemes not in use
+      /*
       const deps = fn.dependencies
       if (deps.length > 1) {
         const ins = {}
@@ -116,6 +118,8 @@ export default function pugPlugin (options) {
           ins[dep] = output.push(`import '${dep}';`)
         })
       }
+      */
+      // `ins` not in use below this point
 
       output.push(`export default ${body}`)
 
