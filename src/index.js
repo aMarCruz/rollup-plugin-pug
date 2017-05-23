@@ -88,9 +88,7 @@ export default function pugPlugin (options) {
       opts.filename = id
 
       if (matchStaticPattern(id)) {
-
-        // v1.0.4: include pug options in locals as "pug_options"
-        const locals = assign({ pug_options: opts }, config.locals)
+        const locals = config.locals
 
         fn = compile(code, opts)
         body = JSON.stringify(fn(locals)) + ';'
