@@ -93,7 +93,8 @@ describe('rollup-plugin-pug', function () {
     rollup({
       entry: 'fixtures/precompile/main.js',
       plugins: [_pug({
-        locals: { name: 'pug', other: 'other' }
+        locals: { name: 'pug', other: 'other' },
+        option_local: 'option_local',
       })]
     })
     .then(function (bundle) {

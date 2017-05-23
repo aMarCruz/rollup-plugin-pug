@@ -1,4 +1,4 @@
-import { compile, compileClientWithDependenciesTracked } from 'pug'
+import { render, compileClientWithDependenciesTracked } from 'pug'
 import { resolve, dirname } from 'path'
 import genPugSourceMap from 'gen-pug-source-map'
 import moveImports from './move-imports'
@@ -80,21 +80,25 @@ export default function pugPlugin (options) {
         return null
       }
 
-      const opts   = cloneProps(config, PUGPROPS)
-      const output = []
+      const is_static = matchStaticPattern(id)
+      let opts
 
+      if (is_static) {
+        opts = clone(config)
+      } else {
+        opts = cloneProps(config, PUGPROPS)
+      }
+
+      const output = []
       let fn, body, map, keepDbg
 
       opts.filename = id
 
-      if (matchStaticPattern(id)) {
-        const locals = config.locals
+      if (is_static) {
+        const static_opts = assign({}, config.locals, opts)
 
-        fn = compile(code, opts)
-        body = JSON.stringify(fn(locals)) + ';'
-
+        body = JSON.stringify(render(code, static_opts)) + ';'
       } else {
-
         keepDbg = opts.compileDebug
         if (config.sourceMap) opts.compileDebug = map = true
         code = moveImports(code, output)
