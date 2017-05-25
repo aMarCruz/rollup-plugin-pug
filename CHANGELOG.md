@@ -1,7 +1,7 @@
 # Changes to rollup-plugin-pug
 
 ### 2017-05-18 v0.1.4
-- Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter (`_pug_options` is used anymore).
+- Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter, so `_pug_options` is not used anymore (thanks to @StreetStrider).
 - Support for ES6 `import` statements in one-line unbuffered code (starting with dash).
 
 ### 2017-03-11 v0.1.3

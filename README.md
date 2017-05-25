@@ -99,7 +99,7 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 
 ## What's New
 
-- Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter (thank to @StreetStrider).
+- Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter (thanks to @StreetStrider).
 - ES6 `import` statements in one-line unbuffered code (starting with dash) are moved out of the template.
 
 ## Licence
