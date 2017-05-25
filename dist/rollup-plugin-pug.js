@@ -180,7 +180,7 @@ function pugPlugin (options) {
         }
 
         var deps = fn.dependencies;
-        if (deps.length > 1) {
+        if (deps.length) {
           var ins = {};
 
           deps.forEach(function (dep) {

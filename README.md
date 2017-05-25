@@ -10,6 +10,7 @@
 * Automatic `import` of the pug-runtime in your bundle, if required.
 * Automatic `import` of template `extends` and `includes`.
 * **Source map support**.
+* Support for ES6 `import` statements (moved out of the template).
 
 ## Installation
 
@@ -98,7 +99,8 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 
 ## What's New
 
-- Using the lastest Pug version.
+- Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter (thank to @StreetStrider).
+- ES6 `import` statements in one-line unbuffered code (starting with dash) are moved out of the template.
 
 ## Licence
 
