@@ -109,21 +109,17 @@ export default function pugPlugin (options) {
         if (/\bpug\./.test(body)) {
           output.unshift("import pug from '\0pug-runtime';")
         }
-      }
 
-      // TODO this seemes not in use
-      /*
-      const deps = fn.dependencies
-      if (deps.length > 1) {
-        const ins = {}
+        const deps = fn.dependencies
+        if (deps.length > 1) {
+          const ins = {}
 
-        deps.forEach((dep) => {
-          if (dep in ins) return
-          ins[dep] = output.push(`import '${dep}';`)
-        })
+          deps.forEach((dep) => {
+            if (dep in ins) return
+            ins[dep] = output.push(`import '${dep}';`)
+          })
+        }
       }
-      */
-      // `ins` not in use below this point
 
       output.push(`export default ${body}`)
 

@@ -149,23 +149,25 @@ function pugPlugin (options) {
         return null
       }
 
-      var opts   = cloneProps(config, PUGPROPS);
-      var output = [];
+      var is_static = matchStaticPattern(id);
+      var opts;
 
+      if (is_static) {
+        opts = clone(config);
+      } else {
+        opts = cloneProps(config, PUGPROPS);
+      }
+
+      var output = [];
       var fn, body, map, keepDbg;
 
       opts.filename = id;
 
-      if (matchStaticPattern(id)) {
+      if (is_static) {
+        var static_opts = assign({}, config.locals, opts);
 
-        // v1.0.4: include pug options in locals as "pug_options"
-        var locals = assign({ pug_options: opts }, config.locals);
-
-        fn = pug.compile(code, opts);
-        body = JSON.stringify(fn(locals)) + ';';
-
+        body = JSON.stringify(pug.render(code, static_opts)) + ';';
       } else {
-
         keepDbg = opts.compileDebug;
         if (config.sourceMap) { opts.compileDebug = map = true; }
         code = moveImports(code, output);
@@ -176,16 +178,16 @@ function pugPlugin (options) {
         if (/\bpug\./.test(body)) {
           output.unshift("import pug from '\0pug-runtime';");
         }
-      }
 
-      var deps = fn.dependencies;
-      if (deps.length > 1) {
-        var ins = {};
+        var deps = fn.dependencies;
+        if (deps.length > 1) {
+          var ins = {};
 
-        deps.forEach(function (dep) {
-          if (dep in ins) { return }
-          ins[dep] = output.push(("import '" + dep + "';"));
-        });
+          deps.forEach(function (dep) {
+            if (dep in ins) { return }
+            ins[dep] = output.push(("import '" + dep + "';"));
+          });
+        }
       }
 
       output.push(("export default " + body));

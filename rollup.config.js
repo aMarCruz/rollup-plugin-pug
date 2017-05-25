@@ -4,7 +4,7 @@ import buble from 'rollup-plugin-buble'
 
 var pkg = require('./package.json')
 
-var external = Object.keys(require('./package.json').dependencies).concat(['fs', 'path'])
+var external = Object.keys(pkg.dependencies).concat(['fs', 'path'])
 
 
 export default {

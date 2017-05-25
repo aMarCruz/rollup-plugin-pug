@@ -1,6 +1,8 @@
+- import hello from './hello.pug'
 - import foo from './foo'
 - import { bar } from './bar'
 - import "./baz"
 
+!= hello()
 p= foo()
 p= bar()
