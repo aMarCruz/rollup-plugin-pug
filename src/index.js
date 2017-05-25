@@ -111,7 +111,7 @@ export default function pugPlugin (options) {
         }
 
         const deps = fn.dependencies
-        if (deps.length > 1) {
+        if (deps.length) {
           const ins = {}
 
           deps.forEach((dep) => {
