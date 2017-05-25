@@ -1,4 +1,4 @@
-import { compile, compileClientWithDependenciesTracked } from 'pug'
+import { render, compileClientWithDependenciesTracked } from 'pug'
 import { resolve, dirname } from 'path'
 import genPugSourceMap from 'gen-pug-source-map'
 import moveImports from './move-imports'
@@ -80,23 +80,25 @@ export default function pugPlugin (options) {
         return null
       }
 
-      const opts   = cloneProps(config, PUGPROPS)
-      const output = []
+      const is_static = matchStaticPattern(id)
+      let opts
 
+      if (is_static) {
+        opts = clone(config)
+      } else {
+        opts = cloneProps(config, PUGPROPS)
+      }
+
+      const output = []
       let fn, body, map, keepDbg
 
       opts.filename = id
 
-      if (matchStaticPattern(id)) {
+      if (is_static) {
+        const static_opts = assign({}, config.locals, opts)
 
-        // v1.0.4: include pug options in locals as "pug_options"
-        const locals = assign({ pug_options: opts }, config.locals)
-
-        fn = compile(code, opts)
-        body = JSON.stringify(fn(locals)) + ';'
-
+        body = JSON.stringify(render(code, static_opts)) + ';'
       } else {
-
         keepDbg = opts.compileDebug
         if (config.sourceMap) opts.compileDebug = map = true
         code = moveImports(code, output)
@@ -109,6 +111,8 @@ export default function pugPlugin (options) {
         }
       }
 
+      // TODO this seemes not in use
+      /*
       const deps = fn.dependencies
       if (deps.length > 1) {
         const ins = {}
@@ -118,6 +122,8 @@ export default function pugPlugin (options) {
           ins[dep] = output.push(`import '${dep}';`)
         })
       }
+      */
+      // `ins` not in use below this point
 
       output.push(`export default ${body}`)
 
