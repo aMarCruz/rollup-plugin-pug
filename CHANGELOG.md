@@ -1,6 +1,10 @@
 # Changes to rollup-plugin-pug
 
-### 2017-05-18 v0.1.5
+### 2017-06-21 v0.1.6
+- Fixes package installation.
+- Updated devDependencies.
+
+### 2017-06-20 v0.1.5
 - A custom runtime can be set through the `pugRuntime` option.
 - `pugRuntime: false` avoids importation of the pug-runtime.
 - The pug option `inlineRuntimeFunctions` is honored and the runtime is not imported.
