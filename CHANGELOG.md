@@ -1,5 +1,10 @@
 # Changes to rollup-plugin-pug
 
+### 2017-05-18 v0.1.5
+- A custom runtime can be set through the `pugRuntime` option.
+- `pugRuntime: false` avoids importation of the pug-runtime.
+- The pug option `inlineRuntimeFunctions` is honored and the runtime is not imported.
+
 ### 2017-05-18 v0.1.4
 - Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter, so `_pug_options` is not used anymore (thanks to @StreetStrider).
 - Support for ES6 `import` statements in one-line unbuffered code (starting with dash).

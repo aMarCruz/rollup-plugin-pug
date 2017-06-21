@@ -1,38 +1,16 @@
 import { render, compileClientWithDependenciesTracked } from 'pug'
 import { resolve, dirname } from 'path'
 import genPugSourceMap from 'gen-pug-source-map'
+import getRuntime from './get-runtime'
 import moveImports from './move-imports'
-import makeFilter from './make-filter'
-import assign from './assign'
-
-// used pug options, note this list does not include 'name'
-const PUGPROPS = [
-  'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
-  'debug', 'compileDebug', 'globals', 'inlineRuntimeFunctions'
-]
-
-// perform a deep cloning of an object
-function clone (obj) {
-  if (obj == null || typeof obj != 'object') return obj
-  const copy = obj.constructor()
-  for (const attr in obj) {
-    if (obj.hasOwnProperty(attr)) copy[attr] = clone(obj[attr])
-  }
-  return copy
-}
-
-// deep copy of the properties filtered by list
-function cloneProps (src, list) {
-  return list.reduce((o, p) => {
-    if (p in src) o[p] = clone(src[p])
-    return o
-  }, {})
-}
+import clonePugOpts from './clone-pug-opts'
+import makeFilter from './utils/make-filter'
+import assign from './utils/assign'
+import clone from './utils/clone'
 
 // rollup-plugin-pug --------------------------------------
 
 export default function pugPlugin (options) {
-  if (!options) options = {}
 
   // prepare extensions to match with the extname() result
   const filter = makeFilter(options, ['.pug', '.jade'])
@@ -42,11 +20,11 @@ export default function pugPlugin (options) {
     doctype: 'html',
     compileDebug: false,
     staticPattern: /\.static\.(?:pug|jade)$/,
+    inlineRuntimeFunctions: false,
     locals: {}
   }, options)
 
-  config.inlineRuntimeFunctions = false
-  config.pugRuntime = resolve(__dirname, 'runtime.es.js')
+  config.pugRuntime = getRuntime(config)
   config.sourceMap  = config.sourceMap !== false
 
   // v1.0.3 add default globals to the user defined set
@@ -67,12 +45,14 @@ export default function pugPlugin (options) {
 
     options (opts) {
       if (!config.basedir) {
-        config.basedir = dirname(resolve(opts.entry || '~'))
+        config.basedir = dirname(resolve(opts.entry || './'))
       }
     },
 
     resolveId (importee) {
-      if (/\0pug-runtime$/.test(importee)) return config.pugRuntime
+      if (importee === config.runtimeImport && config.pugRuntime) {
+        return config.pugRuntime
+      }
     },
 
     transform (code, id) {
@@ -86,7 +66,7 @@ export default function pugPlugin (options) {
       if (is_static) {
         opts = clone(config)
       } else {
-        opts = cloneProps(config, PUGPROPS)
+        opts = clonePugOpts(config)
       }
 
       const output = []
@@ -95,19 +75,22 @@ export default function pugPlugin (options) {
       opts.filename = id
 
       if (is_static) {
-        const static_opts = assign({}, config.locals, opts)
+        const static_opts = assign(null, config.locals, opts)
 
-        body = JSON.stringify(render(code, static_opts)) + ';'
+        body = `export default ${JSON.stringify(render(code, static_opts))};`
+
       } else {
         keepDbg = opts.compileDebug
-        if (config.sourceMap) opts.compileDebug = map = true
+        if (config.sourceMap) {
+          opts.compileDebug = map = true
+        }
         code = moveImports(code, output)
 
         fn = compileClientWithDependenciesTracked(code, opts)
-        body = fn.body.replace('function template(', 'function(')
+        body = fn.body.replace('function template(', '\nexport default function(')
 
-        if (/\bpug\./.test(body)) {
-          output.unshift("import pug from '\0pug-runtime';")
+        if (config.runtimeImport && /\bpug\./.test(body)) {
+          output.unshift(`import pug from '${config.runtimeImport}';`)
         }
 
         const deps = fn.dependencies
@@ -121,9 +104,9 @@ export default function pugPlugin (options) {
         }
       }
 
-      output.push(`export default ${body}`)
+      output.push(body)
 
-      body = output.join('\n') + '\n'
+      body = output.join('\n') + ';\n'
 
       if (map) {
         const bundle = genPugSourceMap(id, body, {

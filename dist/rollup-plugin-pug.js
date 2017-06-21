@@ -1,11 +1,28 @@
 'use strict';
 
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
 var pug = require('pug');
 var path = require('path');
-var genPugSourceMap = _interopDefault(require('gen-pug-source-map'));
+var genPugSourceMap = require('gen-pug-source-map');
 var rollupPluginutils = require('rollup-pluginutils');
+
+var getRuntime = function (config) {
+  var runtime = config.inlineRuntimeFunctions ? false : config.pugRuntime;
+
+  if (runtime === false) {
+    config.runtimeImport = '';
+    runtime = '';
+
+  } else if (typeof runtime != 'string') {
+    config.runtimeImport = '\0pug-runtime';
+    runtime = path.resolve(__dirname, 'runtime.es.js');
+
+  } else {
+    config.runtimeImport = runtime;
+    runtime = '';
+  }
+
+  return runtime
+};
 
 var RE_IMPORTS = /^([ \t]*-)[ \t]*(import[ \t*{'"].*)/gm;
 
@@ -17,6 +34,45 @@ var moveImports = function (code, imports) {
     imports.push(_import);
     return indent
   })
+
+};
+
+/**
+ * Perform a deep cloning of an object (enumerable properties).
+ *
+ * @param {any} obj - The object to clone
+ * @returns {object} A new object.
+ */
+function clone (obj) {
+
+  if (obj == null || typeof obj != 'object') {
+    return obj  // not an object, return as is
+  }
+
+  var copy = obj.constructor();
+
+  for (var attr in obj) {
+    if (obj.hasOwnProperty(attr)) {
+      copy[attr] = clone(obj[attr]);
+    }
+  }
+
+  return copy
+}
+
+// used pug options, note this list does not include 'cache' and 'name'
+var PUGPROPS = [
+  'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
+  'debug', 'compileDebug', 'globals', 'inlineRuntimeFunctions'
+];
+
+// deep copy of the properties filtered by list
+var clonePugOpts = function (src) {
+
+  return PUGPROPS.reduce(function (o, p) {
+    if (p in src) { o[p] = clone(src[p]); }
+    return o
+  }, {})
 
 };
 
@@ -35,19 +91,22 @@ function makeFilter (opts, exts) {
 
   var filt = rollupPluginutils.createFilter(opts.include, opts.exclude);
 
-  exts = opts.extensions || exts || '*';
-  if (exts !== '*') {
-    if (!Array.isArray(exts)) { exts = [exts]; }
-    exts = exts.map(function (e) { return e[0] !== '.' ? ("." + e) : e });
+  exts = opts.extensions || exts;
+
+  if (!exts || exts === '*') {
+    return filt
   }
 
+  if (!Array.isArray(exts)) { exts = [exts]; }
+  exts = exts.map(function (e) { return e[0] !== '.' ? ("." + e) : e });
+
   return function (id) {
-    return filt(id) && (exts === '*' || exts.indexOf(path.extname(id)) > -1)
+    return filt(id) && exts.indexOf(path.extname(id)) > -1
   }
 }
 
 /**
- * Object.assign like function, but converts falsy `dest` to object.
+ * Object.assign like function, but always converts falsy `dest` to object.
  *
  * @param   {any} dest - An object or falsy value
  * @returns {Object}   object with merged properties
@@ -55,13 +114,13 @@ function makeFilter (opts, exts) {
 function assign (dest) {
   var args = arguments;
 
-  dest = dest && Object(dest) || {};
+  dest = dest ? Object(dest) : {};
 
   for (var i = 1; i < args.length; i++) {
     var src = args[i];
 
     if (src) {
-      var keys = Object.keys(Object(src));
+      var keys = Object.keys(src);
 
       for (var j = 0; j < keys.length; j++) {
         var p = keys[j];
@@ -74,34 +133,9 @@ function assign (dest) {
   return dest
 }
 
-// used pug options, note this list does not include 'name'
-var PUGPROPS = [
-  'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
-  'debug', 'compileDebug', 'globals', 'inlineRuntimeFunctions'
-];
-
-// perform a deep cloning of an object
-function clone (obj) {
-  if (obj == null || typeof obj != 'object') { return obj }
-  var copy = obj.constructor();
-  for (var attr in obj) {
-    if (obj.hasOwnProperty(attr)) { copy[attr] = clone(obj[attr]); }
-  }
-  return copy
-}
-
-// deep copy of the properties filtered by list
-function cloneProps (src, list) {
-  return list.reduce(function (o, p) {
-    if (p in src) { o[p] = clone(src[p]); }
-    return o
-  }, {})
-}
-
 // rollup-plugin-pug --------------------------------------
 
 function pugPlugin (options) {
-  if (!options) { options = {}; }
 
   // prepare extensions to match with the extname() result
   var filter = makeFilter(options, ['.pug', '.jade']);
@@ -111,11 +145,11 @@ function pugPlugin (options) {
     doctype: 'html',
     compileDebug: false,
     staticPattern: /\.static\.(?:pug|jade)$/,
+    inlineRuntimeFunctions: false,
     locals: {}
   }, options);
 
-  config.inlineRuntimeFunctions = false;
-  config.pugRuntime = path.resolve(__dirname, 'runtime.es.js');
+  config.pugRuntime = getRuntime(config);
   config.sourceMap  = config.sourceMap !== false;
 
   // v1.0.3 add default globals to the user defined set
@@ -136,12 +170,14 @@ function pugPlugin (options) {
 
     options: function options (opts) {
       if (!config.basedir) {
-        config.basedir = path.dirname(path.resolve(opts.entry || '~'));
+        config.basedir = path.dirname(path.resolve(opts.entry || './'));
       }
     },
 
     resolveId: function resolveId (importee) {
-      if (/\0pug-runtime$/.test(importee)) { return config.pugRuntime }
+      if (importee === config.runtimeImport && config.pugRuntime) {
+        return config.pugRuntime
+      }
     },
 
     transform: function transform (code, id) {
@@ -155,7 +191,7 @@ function pugPlugin (options) {
       if (is_static) {
         opts = clone(config);
       } else {
-        opts = cloneProps(config, PUGPROPS);
+        opts = clonePugOpts(config);
       }
 
       var output = [];
@@ -164,19 +200,22 @@ function pugPlugin (options) {
       opts.filename = id;
 
       if (is_static) {
-        var static_opts = assign({}, config.locals, opts);
+        var static_opts = assign(null, config.locals, opts);
 
-        body = JSON.stringify(pug.render(code, static_opts)) + ';';
+        body = "export default " + (JSON.stringify(pug.render(code, static_opts))) + ";";
+
       } else {
         keepDbg = opts.compileDebug;
-        if (config.sourceMap) { opts.compileDebug = map = true; }
+        if (config.sourceMap) {
+          opts.compileDebug = map = true;
+        }
         code = moveImports(code, output);
 
         fn = pug.compileClientWithDependenciesTracked(code, opts);
-        body = fn.body.replace('function template(', 'function(');
+        body = fn.body.replace('function template(', '\nexport default function(');
 
-        if (/\bpug\./.test(body)) {
-          output.unshift("import pug from '\0pug-runtime';");
+        if (config.runtimeImport && /\bpug\./.test(body)) {
+          output.unshift(("import pug from '" + (config.runtimeImport) + "';"));
         }
 
         var deps = fn.dependencies;
@@ -190,9 +229,9 @@ function pugPlugin (options) {
         }
       }
 
-      output.push(("export default " + body));
+      output.push(body);
 
-      body = output.join('\n') + '\n';
+      body = output.join('\n') + ';\n';
 
       if (map) {
         var bundle = genPugSourceMap(id, body, {

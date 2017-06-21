@@ -23,5 +23,6 @@ export default {
       dest: pkg.main
     }
   ],
+  interop: false,
   sourceMap: true
 }

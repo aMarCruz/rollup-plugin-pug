@@ -37,7 +37,7 @@ const context = { message: 'Hello World' };
 console.log(template(context));  // <p>Hello World</p>
 ```
 
-or rename the template to 'template.static.pug'
+or by renaming the template to 'template.static.pug'
 
 ```js
 import template from './template.static.pug';
@@ -74,9 +74,45 @@ In addition to the regular pug options, the plugin defines these:
 - `include` - minimatch or array of minimatch with files that should be included by default.
 - `exclude` - minimatch or array of minimatch with files that should be excluded by default.
 - `extensions` - Array of extensions to process (don't use wildcards here).
+- `pugRuntime` - Custom runtime (See note).
 - `sourceMap` - Enabled by default.
 
 **Tip:** Use `staticPattern: /\S/` to evaluate all the templates at build time.
+
+**Note:**
+
+The `pugRuntime` option can be set to `false` to avoid importing the runtime, but must provide an equivalent accessible to the template:
+
+```js
+  // in rollup.config.js
+   ...
+   plugins: [
+     pug({ pugRuntime: false })
+   ]
+```
+
+your .pug files:
+```jade
+- import pug from 'runtime'
+p= name
+//- ...etc
+```
+
+or you can name it in the config:
+```js
+  // in rollup.config.js
+   ...
+   plugins: [
+     pug({ pugRuntime: 'runtime' })
+   ]
+```
+
+and write your template as normal.
+
+Search for "pugRuntime" in the `test/run.js` file to see examples.
+
+
+## Pug Options
 
 The plugin has preset the following options:
 
@@ -86,7 +122,7 @@ The plugin has preset the following options:
   basedir: absolute(entry),       // absolute path of your rollup `entry` file
   compileDebug: false,            // `true` is recommended for development
   sourceMap: true,                // with or without compileDebug option
-  inlineRuntimeFunctions: false,  // forced, there's no reason to inline functions
+  inlineRuntimeFunctions: false,  // can be `false` now
   extensions: ['.pug', '.jade'],
   staticPattern: /\.static\.(?:pug|jade)$/
 }
@@ -99,8 +135,12 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 
 ## What's New
 
-- Pug `render` is used instead `compile` receiving `locals` and all the plugin options as parameter (thanks to @StreetStrider).
-- ES6 `import` statements in one-line unbuffered code (starting with dash) are moved out of the template.
+- A custom runtime can be set through the `pugRuntime` option.
+- `pugRuntime: false` avoids importation of the pug-runtime.
+- The pug option `inlineRuntimeFunctions` is honored and the runtime is not imported.
+
+See the [CHANGELOG](CHANGELOG.md) for more changes.
+
 
 ## Licence
 

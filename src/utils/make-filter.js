@@ -16,13 +16,16 @@ export default function makeFilter (opts, exts) {
 
   const filt = createFilter(opts.include, opts.exclude)
 
-  exts = opts.extensions || exts || '*'
-  if (exts !== '*') {
-    if (!Array.isArray(exts)) exts = [exts]
-    exts = exts.map((e) => { return e[0] !== '.' ? `.${e}` : e })
+  exts = opts.extensions || exts
+
+  if (!exts || exts === '*') {
+    return filt
   }
 
+  if (!Array.isArray(exts)) exts = [exts]
+  exts = exts.map((e) => { return e[0] !== '.' ? `.${e}` : e })
+
   return function (id) {
-    return filt(id) && (exts === '*' || exts.indexOf(extname(id)) > -1)
+    return filt(id) && exts.indexOf(extname(id)) > -1
   }
 }
