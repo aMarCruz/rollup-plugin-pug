@@ -6,15 +6,16 @@
   "module": "dist/rollup-plugin-pug.es.js",
   "jsnext:main": "dist/rollup-plugin-pug.es.js",
   "files": [
+    "*.js",
     "src",
     "dist",
-    "README.md"
+    "test"
   ],
   "scripts": {
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- test/run.js",
     "pretest": "npm run build",
     "build": "rm -rf dist/* && node ./build-rt.js && rollup -c",
-    "prepublish": "npm run lint && npm test",
+    "prepublish": "npm run lint && npm test && rm -rf test/~tmp",
     "postinstall": "node ./build-rt.js",
     "lint": "eslint src/*.js test/run.js"
   },
