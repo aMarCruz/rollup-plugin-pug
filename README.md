@@ -81,7 +81,7 @@ In addition to the regular pug options, the plugin defines these:
 
 **Note:**
 
-The `pugRuntime` option can be set to `false` to avoid importing the runtime, but must provide an equivalent accessible to the template:
+The `pugRuntime` option can be set to `false` to avoid importing the runtime, but you must provide an equivalent accessible to the template:
 
 ```js
   // in rollup.config.js
@@ -127,8 +127,6 @@ The plugin has preset the following options:
   staticPattern: /\.static\.(?:pug|jade)$/
 }
 ```
-
-Perhaps the most important option that you need to review is `basedir`.
 
 See the full list and explanation in the [API Documentation](https://pugjs.org/api/reference.html) of the pug site.
 
