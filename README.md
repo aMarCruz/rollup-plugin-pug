@@ -54,10 +54,10 @@ import pug from 'rollup-plugin-pug';
 rollup({
   entry: 'src/main.js',
   plugins: [
-    pug(
+    pug({
       // your options here
       locals: { message: 'Hello World' }
-    )
+    })
   ]
 }).then(...)
 ```
