@@ -1,5 +1,5 @@
-import { compile, render, compileClientWithDependenciesTracked } from 'pug'
-import { resolve, dirname, basename } from 'path'
+import { compile, compileClientWithDependenciesTracked } from 'pug'
+import { resolve, dirname } from 'path'
 import genPugSourceMap from 'gen-pug-source-map'
 import { parseOptions } from './parse-options'
 import { moveImports } from './move-imports'
@@ -39,7 +39,7 @@ export default function pugPlugin (options: Partial<PugPluginOpts>) {
 
     options (opts: InputOptions) {
       if (!config.basedir) {
-        let basedir = opts.input
+        const basedir = opts.input
 
         // istanbul ignore else
         if (basedir && typeof basedir == 'string') {

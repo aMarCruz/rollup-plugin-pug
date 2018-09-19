@@ -141,6 +141,7 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 ### Added
 - Typescript definitions
 - Watch the included files in static templates.
+- AppVeyor tests.
 
 ### Changed
 - peerDependencies has rollup>=0.61 to allow dependency detection (see Rollup [#2259](https://github.com/rollup/rollup/pull/2259))

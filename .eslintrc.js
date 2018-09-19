@@ -99,6 +99,7 @@ module.exports = {
     'no-unmodified-loop-condition': WARN,
     'no-unneeded-ternary': ON,
     'no-unused-expressions': ON,
+    'no-unused-vars': OFF,        // handled by TS
     'no-use-before-define': [ON, { functions: USE, variables: USE }],
     'no-useless-call': ON,
     'no-useless-computed-key': ON,
