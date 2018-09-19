@@ -1,248 +1,258 @@
-import { compileClientWithDependenciesTracked, render } from 'pug';
-import { dirname, extname, resolve } from 'path';
-import genPugSourceMap from 'gen-pug-source-map';
+/**
+ * rollup-plugin-pug v1.0.0
+ * @author aMarCruz'
+ * @license MIT'
+ */
+import { resolve, extname, dirname } from 'path';
 import { createFilter } from 'rollup-pluginutils';
+import { compile, compileClientWithDependenciesTracked } from 'pug';
+import genPugSourceMap from 'gen-pug-source-map';
 
-var getRuntime = function (config) {
-  var runtime = config.inlineRuntimeFunctions ? false : config.pugRuntime;
-
-  if (runtime === false) {
-    config.runtimeImport = '';
-    runtime = '';
-
-  } else if (typeof runtime != 'string') {
-    config.runtimeImport = '\0pug-runtime';
-    runtime = resolve(__dirname, 'runtime.es.js');
-
-  } else {
-    config.runtimeImport = runtime;
-    runtime = '';
-  }
-
-  return runtime
+/**
+ * Object.assign like function, but always converts falsy `dest` to object.
+ *
+ * @param dest - An object or falsy value
+ * @returns Object with merged properties
+ */
+const assign = (dest, ...args) => {
+    dest = dest ? Object(dest) : {};
+    for (let i = 0; i < args.length; i++) {
+        const src = args[i];
+        // istanbul ignore else
+        if (src) {
+            const keys = Object.keys(src);
+            for (let j = 0; j < keys.length; j++) {
+                const p = keys[j];
+                dest[p] = src[p];
+            }
+        }
+    }
+    return dest;
 };
 
-var RE_IMPORTS = /^([ \t]*-)[ \t]*(import[ \t*{'"].*)/gm;
+function parseOptions(options) {
+    options = options || {};
+    // Get runtimeImport & pugRuntime values
+    let runtimeImport;
+    let pugRuntime = options.inlineRuntimeFunctions ? false : options.pugRuntime;
+    if (pugRuntime === false) {
+        runtimeImport = '';
+        pugRuntime = '';
+    }
+    else if (typeof pugRuntime != 'string') {
+        runtimeImport = '\0pug-runtime';
+        pugRuntime = resolve(__dirname, 'runtime.es.js');
+    }
+    else {
+        runtimeImport = pugRuntime;
+        pugRuntime = '';
+    }
+    // v1.0.3 add default globals to the user defined set
+    const globals = ['String', 'Number', 'Boolean', 'Date', 'Array', 'Function', 'Math', 'RegExp'];
+    // Merge the user globals with the predefined ones
+    if (options.globals && Array.isArray(options.globals)) {
+        options.globals.forEach((g) => {
+            if (globals.indexOf(g) < 0) {
+                globals.push(g);
+            }
+        });
+    }
+    let basedir = options.basedir;
+    if (basedir) {
+        basedir = resolve(basedir);
+    }
+    // Shallow copy of user options & defaults
+    return assign({
+        doctype: 'html',
+        compileDebug: false,
+        staticPattern: /\.static\.(?:pug|jade)$/,
+        inlineRuntimeFunctions: false,
+        locals: {},
+    }, options, {
+        basedir,
+        globals,
+        runtimeImport,
+        pugRuntime,
+        sourceMap: options.sourceMap !== false,
+    });
+}
 
-var moveImports = function (code, imports) {
-
-  return code.replace(RE_IMPORTS, function (_, indent, _import) {
-    _import = _import.trim();
-    if (_import.slice(-1) !== ';') { _import += ';'; }
-    imports.push(_import);
-    return indent
-  })
-
-};
+const RE_IMPORTS = /^([ \t]*-)[ \t]*(import[ \t*{'"].*)/gm;
+/**
+ * Adds an import directive to the collected imports.
+ *
+ * @param code Procesing code
+ * @param imports Collected imports
+ */
+function moveImports(code, imports) {
+    return code.replace(RE_IMPORTS, function (_, indent, imprt) {
+        imprt = imprt.trim();
+        if (imprt.slice(-1) !== ';') {
+            imprt += ';';
+        }
+        imports.push(imprt);
+        return indent; // keep only the indentation
+    });
+}
 
 /**
  * Perform a deep cloning of an object (enumerable properties).
  *
- * @param {any} obj - The object to clone
- * @returns {object} A new object.
+ * @param obj - The object to clone
+ * @returns A new object.
  */
-function clone (obj) {
-
-  if (obj == null || typeof obj != 'object') {
-    return obj  // not an object, return as is
-  }
-
-  var copy = obj.constructor();
-
-  for (var attr in obj) {
-    if (obj.hasOwnProperty(attr)) {
-      copy[attr] = clone(obj[attr]);
+const clone = (obj) => {
+    if (obj == null || typeof obj != 'object') {
+        return obj; // not an object, return as is
     }
-  }
-
-  return copy
-}
+    const copy = obj.constructor();
+    for (const attr in obj) {
+        // istanbul ignore else
+        if (Object.hasOwnProperty.call(obj, attr)) {
+            copy[attr] = clone(obj[attr]);
+        }
+    }
+    return copy;
+};
 
 // used pug options, note this list does not include 'cache' and 'name'
-var PUGPROPS = [
-  'filename', 'basedir', 'doctype', 'pretty', 'filters', 'self',
-  'debug', 'compileDebug', 'globals', 'inlineRuntimeFunctions'
+const PUGPROPS = [
+    'basedir',
+    'compileDebug',
+    'debug',
+    'doctype',
+    'filters',
+    'globals',
+    'inlineRuntimeFunctions',
+    'pretty',
+    'self',
 ];
-
-// deep copy of the properties filtered by list
-var clonePugOpts = function (src) {
-
-  return PUGPROPS.reduce(function (o, p) {
-    if (p in src) { o[p] = clone(src[p]); }
-    return o
-  }, {})
-
-};
+/**
+ * Retuns a deep copy of the properties filtered by an allowed keywords list
+ */
+function clonePugOpts(opts, filename) {
+    return PUGPROPS.reduce((o, p) => {
+        if (p in opts) {
+            o[p] = clone(opts[p]);
+        }
+        return o;
+    }, { filename });
+}
 
 /**
  * Creates a filter for the options `include`, `exclude`, and `extensions`.
  * It filter out names starting with `\0`.
  * Since `extensions` is not a rollup option, I think is widely used.
  *
- * @param {object}       opts - The user options
- * @param {array|string} exts - Default extensions
- * @returns {function}   Filter function that returns true if a given
- *                       file matches the filter.
+ * @param opts - User options
+ * @param exts - Default extensions
+ * @returns Filter function that returns true if a given file matches the filter.
  */
-function makeFilter (opts, exts) {
-  if (!opts) { opts = {}; }
-
-  var filt = createFilter(opts.include, opts.exclude);
-
-  exts = opts.extensions || exts;
-
-  if (!exts || exts === '*') {
-    return filt
-  }
-
-  if (!Array.isArray(exts)) { exts = [exts]; }
-  exts = exts.map(function (e) { return e[0] !== '.' ? ("." + e) : e });
-
-  return function (id) {
-    return filt(id) && exts.indexOf(extname(id)) > -1
-  }
-}
+const makeFilter = (opts, exts) => {
+    opts = opts || {};
+    // Create the rollup default filter
+    const filter = createFilter(opts.include, opts.exclude);
+    exts = opts.extensions || exts;
+    if (!exts || exts === '*') {
+        return filter;
+    }
+    if (!Array.isArray(exts)) {
+        exts = [exts];
+    }
+    // Create the normalized extension list
+    const extensions = exts.map((e) => (e[0] !== '.' ? `.${e}` : e));
+    return (id) => filter(id) && extensions.indexOf(extname(id)) > -1;
+};
 
 /**
- * Object.assign like function, but always converts falsy `dest` to object.
- *
- * @param   {any} dest - An object or falsy value
- * @returns {Object}   object with merged properties
+ * Retuns an array of unique elements of `inArr` or undefined if inArr is empty.
+ * @param inArr Array of string
  */
-function assign (dest) {
-  var args = arguments;
-
-  dest = dest ? Object(dest) : {};
-
-  for (var i = 1; i < args.length; i++) {
-    var src = args[i];
-
-    if (src) {
-      var keys = Object.keys(src);
-
-      for (var j = 0; j < keys.length; j++) {
-        var p = keys[j];
-
-        dest[p] = src[p];
-      }
+// eslint-disable-next-line consistent-return
+const arrIfDeps = (inArr) => {
+    if (inArr && inArr.length) {
+        const outArr = [];
+        inArr.forEach((str) => {
+            if (outArr.indexOf(str) < 0) {
+                outArr.push(str);
+            }
+        });
+        return outArr;
     }
-  }
-
-  return dest
-}
+};
 
 // rollup-plugin-pug --------------------------------------
-
-function pugPlugin (options) {
-
-  // prepare extensions to match with the extname() result
-  var filter = makeFilter(options, ['.pug', '.jade']);
-
-  // shallow copy options & drop properties unused props
-  var config = assign({
-    doctype: 'html',
-    compileDebug: false,
-    staticPattern: /\.static\.(?:pug|jade)$/,
-    inlineRuntimeFunctions: false,
-    locals: {}
-  }, options);
-
-  config.pugRuntime = getRuntime(config);
-  config.sourceMap  = config.sourceMap !== false;
-
-  // v1.0.3 add default globals to the user defined set
-  var globals = ['String', 'Number', 'Boolean', 'Date', 'Array', 'Function', 'Math', 'RegExp'];
-
-  if (config.globals) {
-    config.globals.forEach(function (g) { if (globals.indexOf(g) < 0) { globals.push(g); } });
-  }
-  config.globals = globals;
-
-  function matchStaticPattern (file) {
-    return config.staticPattern && config.staticPattern.test(file)
-  }
-
-  return {
-
-    name: 'rollup-plugin-pug',
-
-    options: function options (opts) {
-      if (!config.basedir) {
-        config.basedir = dirname(resolve(opts.entry || './'));
-      }
-    },
-
-    resolveId: function resolveId (importee) {
-      if (importee === config.runtimeImport && config.pugRuntime) {
-        return config.pugRuntime
-      }
-    },
-
-    transform: function transform (code, id) {
-      if (!filter(id)) {
-        return null
-      }
-
-      var is_static = matchStaticPattern(id);
-      var opts;
-
-      if (is_static) {
-        opts = clone(config);
-      } else {
-        opts = clonePugOpts(config);
-      }
-
-      var output = [];
-      var fn, body, map, keepDbg;
-
-      opts.filename = id;
-
-      if (is_static) {
-        var static_opts = assign(null, config.locals, opts);
-
-        body = "export default " + (JSON.stringify(render(code, static_opts))) + ";";
-
-      } else {
-        keepDbg = opts.compileDebug;
-        if (config.sourceMap) {
-          opts.compileDebug = map = true;
-        }
-        code = moveImports(code, output);
-
-        fn = compileClientWithDependenciesTracked(code, opts);
-        body = fn.body.replace('function template(', '\nexport default function(');
-
-        if (config.runtimeImport && /\bpug\./.test(body)) {
-          output.unshift(("import pug from '" + (config.runtimeImport) + "';"));
-        }
-
-        var deps = fn.dependencies;
-        if (deps.length) {
-          var ins = {};
-
-          deps.forEach(function (dep) {
-            if (dep in ins) { return }
-            ins[dep] = output.push(("import '" + dep + "';"));
-          });
-        }
-      }
-
-      output.push(body);
-
-      body = output.join('\n') + ';\n';
-
-      if (map) {
-        var bundle = genPugSourceMap(id, body, {
-          basedir: opts.basedir,
-          keepDebugLines: keepDbg
-        });
-        return { code: bundle.data, map: bundle.map }
-      }
-
-      return body
+function pugPlugin(options) {
+    // prepare extensions to match with the extname() result
+    const filter = makeFilter(options, ['.pug', '.jade']);
+    // Shallow copy of user options & defaults
+    const config = parseOptions(options);
+    /** Is this a static file? */
+    function matchStaticPattern(file) {
+        return config.staticPattern && config.staticPattern.test(file);
     }
-  }
+    return {
+        name: 'rollup-plugin-pug',
+        options(opts) {
+            if (!config.basedir) {
+                let basedir = opts.input;
+                // istanbul ignore else
+                if (basedir && typeof basedir == 'string') {
+                    config.basedir = dirname(resolve(basedir));
+                }
+                else {
+                    this.warn('Rollup `input` is not a string, using working dir as `basedir`');
+                    config.basedir = resolve('.');
+                }
+            }
+        },
+        /**
+         * Avoid the inclusion of the runtime
+         * @param id
+         */
+        resolveId(id) {
+            return id === config.runtimeImport && config.pugRuntime || null;
+        },
+        transform(code, id) {
+            if (!filter(id)) {
+                return null;
+            }
+            const isStatic = matchStaticPattern(id);
+            const pugOpts = clonePugOpts(config, id);
+            const output = [];
+            let body;
+            let map;
+            let fn;
+            if (isStatic) {
+                const staticOpts = assign(null, config.locals, clone(config));
+                staticOpts.filename = id;
+                fn = compile(code, pugOpts);
+                body = `export default ${JSON.stringify(fn(staticOpts))}`;
+            }
+            else {
+                if (config.sourceMap) {
+                    pugOpts.compileDebug = map = true;
+                }
+                code = moveImports(code, output);
+                fn = compileClientWithDependenciesTracked(code, pugOpts);
+                body = fn.body.replace('function template(', '\nexport default function(');
+                if (config.runtimeImport && /\bpug\./.test(body)) {
+                    output.unshift(`import pug from '${config.runtimeImport}';`);
+                }
+            }
+            const dependencies = arrIfDeps(fn.dependencies);
+            output.push(body);
+            body = output.join('\n') + ';\n';
+            if (map) {
+                const bundle = genPugSourceMap(id, body, {
+                    basedir: config.basedir,
+                    keepDebugLines: config.compileDebug,
+                });
+                return { code: bundle.data, map: bundle.map, dependencies };
+            }
+            return { code: body, map: null, dependencies };
+        },
+    };
 }
 
 export default pugPlugin;
-//# sourceMappingURL=rollup-plugin-pug.es.js.map

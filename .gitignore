@@ -10,6 +10,7 @@
 *.swo
 *.swp
 *.vi
+*.tgz
 *.zip
 
 logs
@@ -47,7 +48,8 @@ node_modules
 .vscode
 jsconfig.json
 
-# map files
+# dev files
 dist/*.map
-
 **/~tmp
+.rpt*
+yarn.lock

@@ -1,28 +1,32 @@
-/* eslint no-var:0 */
+import typescript from 'rollup-plugin-typescript2'
+import pkgjson from './package.json'
 
-import buble from 'rollup-plugin-buble'
-
-var pkg = require('./package.json')
-
-var external = Object.keys(pkg.dependencies).concat(['fs', 'path'])
-
+const external = Object.keys(pkgjson.dependencies).concat(['fs', 'path'])
+const banner =
+`/**
+ * rollup-plugin-pug v${pkgjson.version}
+ * @author aMarCruz'
+ * @license MIT'
+ */`
 
 export default {
-  entry: 'src/index.js',
+  input: 'src/index.ts',
   plugins: [
-    buble()
+    typescript({ target: 'es6' }),
   ],
-  external: external,
-  targets: [
+  external,
+  output: [
     {
+      file: pkgjson.module,
       format: 'es',
-      dest: pkg.module
+      banner,
+      interop: false,
     },
     {
+      file: pkgjson.main,
       format: 'cjs',
-      dest: pkg.main
-    }
+      banner,
+      interop: false,
+    },
   ],
-  interop: false,
-  sourceMap: true
 }

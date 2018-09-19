@@ -1,17 +1,16 @@
 /**
  * Object.assign like function, but always converts falsy `dest` to object.
  *
- * @param   {any} dest - An object or falsy value
- * @returns {Object}   object with merged properties
+ * @param dest - An object or falsy value
+ * @returns Object with merged properties
  */
-export default function assign (dest) {
-  const args = arguments
-
+export const assign = <T, V>(dest: T, ...args: V[]) => {
   dest = dest ? Object(dest) : {}
 
-  for (let i = 1; i < args.length; i++) {
+  for (let i = 0; i < args.length; i++) {
     const src = args[i]
 
+    // istanbul ignore else
     if (src) {
       const keys = Object.keys(src)
 
@@ -23,5 +22,5 @@ export default function assign (dest) {
     }
   }
 
-  return dest
+  return dest as T & V
 }

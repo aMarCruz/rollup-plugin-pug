@@ -1,19 +1,20 @@
 /**
  * Perform a deep cloning of an object (enumerable properties).
  *
- * @param {any} obj - The object to clone
- * @returns {object} A new object.
+ * @param obj - The object to clone
+ * @returns A new object.
  */
-export default function clone (obj) {
+export const clone = <T>(obj: T) => {
 
   if (obj == null || typeof obj != 'object') {
     return obj  // not an object, return as is
   }
 
-  const copy = obj.constructor()
+  const copy: T = obj.constructor()
 
   for (const attr in obj) {
-    if (obj.hasOwnProperty(attr)) {
+    // istanbul ignore else
+    if (Object.hasOwnProperty.call(obj, attr)) {
       copy[attr] = clone(obj[attr])
     }
   }

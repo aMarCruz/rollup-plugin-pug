@@ -1,1 +1,3 @@
 dist/
+test/~tmp
+test/fixtures

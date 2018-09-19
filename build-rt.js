@@ -1,14 +1,17 @@
-/* eslint no-var:0 */
+/*
+  Create a pug-runtime module.
 
-var path = require('path')
-var fs = require('fs')
+  2018-09-18:amc: using ES6
+*/
+const path = require('path')
+const fs = require('fs')
 
-var indent = '  '
-var prefix = 'export default (function(exports){\n'
-var suffix = '\n' + indent + 'return exports\n})({});\n'
+const indent = '  '
+const prefix = 'export default (function(exports) {\n'
+const suffix = `\n${indent}return exports\n})({});\n`
 
-var pugPath = require.resolve('pug-runtime')
-var runtime = fs.readFileSync(pugPath, 'utf8')
+let pugPath = require.resolve('pug-runtime')
+let runtime = fs.readFileSync(pugPath, 'utf8')
 
 runtime = runtime.replace(/^(?=[ \t]*\S)/gm, indent)
 
@@ -17,4 +20,4 @@ runtime = prefix + runtime + suffix
 
 fs.writeFileSync(pugPath, runtime, 'utf8')
 
-console.log('> ' + pugPath + ' written.\n')  //eslint-disable-line no-console
+console.log(`> ${pugPath} written.\n`)  //eslint-disable-line no-console
