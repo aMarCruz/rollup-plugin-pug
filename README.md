@@ -1,4 +1,5 @@
-[![Build Status][build-image]][build-url]
+[![Linux build Status][build-image]][build-url]
+[![Windows build status][appveyor-image]][appveyor-url]
 [![npm Version][npm-image]][npm-url]
 [![License][license-image]][license-url]
 
@@ -158,8 +159,10 @@ See the [CHANGELOG](CHANGELOG.md) for more changes.
 
 The [MIT](LICENSE) license.
 
-[build-image]:    https://img.shields.io/travis/aMarCruz/rollup-plugin-pug.svg
+[build-image]:    https://travis-ci.org/aMarCruz/rollup-plugin-pug.svg?branch=master
 [build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-pug
+[appveyor-image]: https://ci.appveyor.com/api/projects/status/us75417f6ls7yjik/branch/master?svg=true
+[appveyor-url]:   https://ci.appveyor.com/project/aMarCruz/rollup-plugin-pug/branch/master
 [npm-image]:      https://img.shields.io/npm/v/rollup-plugin-pug.svg
 [npm-url]:        https://www.npmjs.com/package/rollup-plugin-pug
 [license-image]:  https://img.shields.io/npm/l/express.svg
