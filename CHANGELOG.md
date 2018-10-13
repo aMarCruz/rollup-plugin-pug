@@ -6,6 +6,9 @@
 - Revision of the `transform` method, add comments.
 - Avoid type coersion (allows Typescript error detection)
 
+### Removed
+- Unused `assign` function, now the plugin uses object spread.
+
 ## [1.0.0] - 2018-09-18
 
 ### Added

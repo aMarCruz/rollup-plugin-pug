@@ -28,5 +28,5 @@ export const makeFilter = (opts: Partial<PugPluginOpts>, exts: string | string[]
   // Create the normalized extension list
   const extensions = exts.map((e) => (e[0] !== '.' ? `.${e}` : e))
 
-  return (id: string) => filter(id) && extensions.indexOf(extname(id)) > -1
+  return (id: string) => (filter(id) && extensions.indexOf(extname(id)) > -1)
 }
