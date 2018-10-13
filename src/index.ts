@@ -6,8 +6,6 @@ import { moveImports } from './move-imports'
 import { clonePugOpts } from './clone-pug-opts'
 import { makeFilter } from './utils/make-filter'
 import { arrIfDeps } from './utils/arr-if-deps'
-import { assign } from './utils/assign'
-import { clone } from './utils/clone'
 
 // typings
 import { Plugin, InputOptions, RawSourceMap } from '../node_modules/rollup/dist/rollup'
@@ -66,37 +64,53 @@ export default function pugPlugin (options: Partial<PugPluginOpts>) {
 
       const isStatic = matchStaticPattern(id)
       const pugOpts = clonePugOpts(config, id)
-      const output = [] as string[]
 
       let body: string
       let map: boolean
       let fn: pugFnOrStr
 
       if (isStatic) {
-        const staticOpts = assign(null, config.locals, clone(config))
-        staticOpts.filename = id
+        /*
+          This template is executed now and, at runtime, will be loaded through
+          `import` so it will not have access to runtime variables or methods.
+          Instead, we use here the `local` variables and the compile-time options.
+        */
+        const staticOpts = { ...config.locals, ...config, filename: id }
 
         fn = compile(code, pugOpts) as pugFnOrStr
-        body = `export default ${JSON.stringify(fn(staticOpts))}`
+        body = fn(staticOpts)
+        body = `export default ${JSON.stringify(body)};\n`
 
       } else {
+        /*
+          This template will generate a module with a function to be executed at
+          runtime. It will be user responsibility to pass the correct parameters
+          to the function, here we only take care of the `imports`, incluiding the
+          pug runtime.
+        */
+        const imports = [] as string[]
+
         if (config.sourceMap) {
           pugOpts.compileDebug = map = true
         }
-        code = moveImports(code, output)
 
+        // move the imports from the template to the top of the output queue
+        code = moveImports(code, imports)
+
+        // get function body and dependencies
         fn = compileClientWithDependenciesTracked(code, pugOpts) as pugFnOrStr
         body = fn.body.replace('function template(', '\nexport default function(')
 
+        // put the pung-runtime import as the first of the queue, if neccesary
         if (config.runtimeImport && /\bpug\./.test(body)) {
-          output.unshift(`import pug from '${config.runtimeImport}';`)
+          imports.unshift(`import pug from '${config.runtimeImport}';`)
         }
+
+        // convert imports into string and add the template function
+        body = imports.join('\n') + `${body};\n`
       }
 
       const dependencies = arrIfDeps(fn.dependencies)
-
-      output.push(body)
-      body = output.join('\n') + ';\n'
 
       if (map) {
         const bundle = genPugSourceMap(id, body, {

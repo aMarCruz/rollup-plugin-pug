@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-pug",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Transforms Pug (aka Jade) templates to ES6 modules.",
   "main": "dist/rollup-plugin-pug.js",
   "module": "dist/rollup-plugin-pug.es.js",

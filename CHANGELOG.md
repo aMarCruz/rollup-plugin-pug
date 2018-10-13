@@ -1,5 +1,10 @@
 # Changes to rollup-plugin-pug
 
+## [Unreleased]
+
+### Changed
+- Revision of the `transform` method, add comments.
+
 ## [1.0.0] - 2018-09-18
 
 ### Added
