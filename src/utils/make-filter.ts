@@ -14,7 +14,7 @@ export const makeFilter = (opts: Partial<PugPluginOpts>, exts: string | string[]
   opts = opts || {}
 
   // Create the rollup default filter
-  const filter: (id: string) => boolean = createFilter(opts.include, opts.exclude)
+  const filter = createFilter(opts.include, opts.exclude)
 
   exts = opts.extensions || exts
   if (!exts || exts === '*') {

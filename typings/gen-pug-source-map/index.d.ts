@@ -1,5 +1,15 @@
 declare module "gen-pug-source-map" {
 
+  interface PugRawSourceMap {
+    version: string
+    sources: string[]
+    names: string[]
+    sourceRoot?: string
+    sourcesContent?: string[]
+    mappings: string
+    file: string
+  }
+
   interface PugSourceMapOpts {
     /**
      * Define the root directory of the source files for using relative names.
@@ -25,7 +35,7 @@ declare module "gen-pug-source-map" {
     options?: PugSourceMapOpts
   ) => {
     data: string,
-    map: object,
+    map: PugRawSourceMap,
   }
 
   export = genPugSourceMap

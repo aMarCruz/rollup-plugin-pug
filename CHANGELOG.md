@@ -4,6 +4,7 @@
 
 ### Changed
 - Revision of the `transform` method, add comments.
+- Avoid type coersion (allows Typescript error detection)
 
 ## [1.0.0] - 2018-09-18
 

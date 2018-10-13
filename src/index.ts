@@ -18,7 +18,7 @@ interface pugFnOrStr {
 
 // rollup-plugin-pug --------------------------------------
 
-export default function pugPlugin (options: Partial<PugPluginOpts>) {
+export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
 
   // prepare extensions to match with the extname() result
   const filter = makeFilter(options, ['.pug', '.jade'])
@@ -117,10 +117,10 @@ export default function pugPlugin (options: Partial<PugPluginOpts>) {
           basedir: config.basedir,
           keepDebugLines: config.compileDebug,
         })
-        return { code: bundle.data, map: bundle.map as RawSourceMap, dependencies }
+        return { code: bundle.data, map: bundle.map, dependencies }
       }
 
       return { code: body, map: null, dependencies }
     },
-  } as Plugin
+  }
 }

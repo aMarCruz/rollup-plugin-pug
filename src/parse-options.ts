@@ -1,7 +1,6 @@
 import { resolve } from 'path'
-import { assign } from './utils/assign'
 
-export function parseOptions (options: Partial<PugPluginOpts>) {
+export function parseOptions (options: Partial<PugPluginOpts>): PugPluginOpts {
   options = options || {}
 
   // Get runtimeImport & pugRuntime values
@@ -39,21 +38,17 @@ export function parseOptions (options: Partial<PugPluginOpts>) {
   }
 
   // Shallow copy of user options & defaults
-  return assign(
-    {
-      doctype: 'html',
-      compileDebug: false,
-      staticPattern: /\.static\.(?:pug|jade)$/,
-      inlineRuntimeFunctions: false,
-      locals: {},
-    },
-    options,
-    {
-      basedir,
-      globals,
-      runtimeImport,
-      pugRuntime,
-      sourceMap: options.sourceMap !== false,
-    }
-  ) as PugPluginOpts
+  return {
+    doctype: 'html',
+    compileDebug: false,
+    staticPattern: /\.static\.(?:pug|jade)$/,
+    inlineRuntimeFunctions: false,
+    locals: {},
+    ...options,
+    basedir,
+    globals,
+    runtimeImport,
+    pugRuntime,
+    sourceMap: options.sourceMap !== false,
+  }
 }
