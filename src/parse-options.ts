@@ -21,7 +21,18 @@ export function parseOptions (options: Partial<PugPluginOpts>): PugPluginOpts {
   }
 
   // v1.0.3 add default globals to the user defined set
-  const globals = ['String', 'Number', 'Boolean', 'Date', 'Array', 'Function', 'Math', 'RegExp']
+  const globals = [
+    'Array',
+    'Boolean',
+    'Date',
+    'Function',
+    'Math',
+    'Number',
+    'Object',
+    'RegExp',
+    'String',
+    'Symbol',
+  ]
 
   // Merge the user globals with the predefined ones
   if (options.globals && Array.isArray(options.globals)) {

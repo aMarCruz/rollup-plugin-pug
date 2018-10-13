@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### Added
+- Add `Object` and `Symbol` to the predefined globals.
+
 ### Changed
 - Revision of the `transform` method, add comments.
 - Avoid type coersion (allows Typescript error detection)
