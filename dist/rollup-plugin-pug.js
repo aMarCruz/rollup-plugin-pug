@@ -1,5 +1,5 @@
 /**
- * rollup-plugin-pug v1.0.1
+ * rollup-plugin-pug v1.1.0
  * @author aMarCruz'
  * @license MIT'
  */
@@ -36,6 +36,7 @@ function parseOptions(options) {
         'Math',
         'Number',
         'Object',
+        'Promise',
         'RegExp',
         'String',
         'Symbol',
@@ -161,6 +162,7 @@ const arrIfDeps = (inArr) => {
     }
 };
 
+//#region Plugin -------------------------------------------------------------
 function pugPlugin(options) {
     // prepare extensions to match with the extname() result
     const filter = makeFilter(options, ['.pug', '.jade']);
@@ -241,7 +243,7 @@ function pugPlugin(options) {
                     basedir: config.basedir,
                     keepDebugLines: config.compileDebug,
                 });
-                // HACK: 'as any' to avoid conflict with wrong rollup typings
+                // HACK: 'as any' to avoid conflict with wrong rollup 6.6 typings
                 return { code: bundle.data, map: bundle.map, dependencies };
             }
             return { code: body, map: null, dependencies };

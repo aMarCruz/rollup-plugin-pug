@@ -1,3 +1,5 @@
+'use strict'
+
 const rollup = require('rollup').rollup
 const assert = require('assert')
 const _pug   = require('../')

@@ -2,10 +2,13 @@
 
 ## [1.1.0] - 2018-10-14
 
+Mostly internal changes
+
 ### Added
 - Add `Promise`, `Object` and `Symbol` to the predefined globals.
 
 ### Changed
+- This version requires node.js 6 or later.
 - Deprecate the `local` option as the plugin passes all the options to static templates.
 - Hide the internal `runtimeImport` variable.
 - Revision of the `transform` method, add comments.

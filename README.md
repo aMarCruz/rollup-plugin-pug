@@ -1,9 +1,9 @@
+# rollup-plugin-pug
+
 [![Linux build Status][build-image]][build-url]
 [![Windows build status][appveyor-image]][appveyor-url]
 [![npm Version][npm-image]][npm-url]
 [![License][license-image]][license-url]
-
-# rollup-plugin-pug
 
 [Rollup](https://github.com/rollup/rollup) plugin that transforms [Pug](https://pugjs.org) v2 templates to ES6 modules.
 
@@ -16,7 +16,7 @@
 
 ## IMPORTANT
 
-v1.0 requires Rollup 0.61 or later, for previous versions use rollup-plugin-pug 0.1.6
+v1.1 requires Rollup 0.61 and node.js 6 or later, for previous versions use rollup-plugin-pug 0.1.6
 
 ## Installation
 

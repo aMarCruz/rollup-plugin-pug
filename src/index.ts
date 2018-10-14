@@ -18,8 +18,6 @@ interface pugFnOrStr {
 
 //#region Plugin -------------------------------------------------------------
 
-const runtimeImport = '\0pug-runtime'
-
 export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
 
   // prepare extensions to match with the extname() result
@@ -120,7 +118,7 @@ export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
           keepDebugLines: config.compileDebug,
         })
 
-        // HACK: 'as any' to avoid conflict with wrong rollup typings
+        // HACK: 'as any' to avoid conflict with wrong rollup 6.6 typings
         return { code: bundle.data, map: bundle.map as any, dependencies }
       }
 

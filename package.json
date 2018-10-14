@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-pug",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Transforms Pug (aka Jade) templates to ES6 modules.",
   "main": "dist/rollup-plugin-pug.js",
   "scripts": {
@@ -20,6 +20,9 @@
     "jade",
     "pug"
   ],
+  "engines": {
+    "node": ">=6.0"
+  },
   "author": "aMarCruz <amarcruzbox-git@yahoo.com>",
   "license": "MIT",
   "homepage": "https://github.com/aMarCruz/rollup-plugin-pug",
@@ -32,10 +35,10 @@
     "gen-pug-source-map": "^1.0.0",
     "pug": "^2.0.3",
     "pug-runtime": "^2.0.4",
-    "rollup-pluginutils": "^2.3.2"
+    "rollup-pluginutils": "^2.3.3"
   },
   "devDependencies": {
-    "eslint": "^5.6.0",
+    "eslint": "^5.7.0",
     "istanbul": "^0.4.5",
     "mocha": "^5.2.0",
     "rimraf": "^2.6.2",
@@ -43,8 +46,8 @@
     "rollup-plugin-alias": "^1.4.0",
     "rollup-plugin-typescript2": "^0.17.0",
     "tslib": "^1.9.3",
-    "typescript": "^3.0.3",
-    "typescript-eslint-parser": "^18.0.0"
+    "typescript": "3.0.3",
+    "typescript-eslint-parser": "^20.0.0"
   },
   "peerDependencies": {
     "rollup": ">=0.61"
