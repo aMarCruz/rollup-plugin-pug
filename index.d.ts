@@ -90,6 +90,7 @@ declare type PugPluginOpts = PugOwnOpts & {
   /**
    * Plain JavaScript object with values passed to the compiler for _static_ compilation.
    * @default {}
+   * @deprecated since v1.0.1
    */
   locals: { [k: string]: any },
   /**

@@ -6,6 +6,7 @@
 - Add `Object` and `Symbol` to the predefined globals.
 
 ### Changed
+- Deprecate the `local` option as the plugin passes all the options to static templates.
 - Revision of the `transform` method, add comments.
 - Avoid type coersion (allows Typescript error detection)
 

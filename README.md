@@ -16,7 +16,7 @@
 
 ## IMPORTANT
 
-v1.0 requires Rollup 0.61 or later.
+v1.0 requires Rollup 0.61 or later, for previous versions use rollup-plugin-pug 0.1.6
 
 ## Installation
 
@@ -26,32 +26,32 @@ npm install rollup-plugin-pug --save-dev
 
 ## Usage
 
-Create the template:
+Create the template
 
 ```jade
 //- template.pug
 p= message
 ```
 
-Import the template:
+and import it as any other function:
 
 ```js
-import template from './template.pug';
+import templateFn from './template.pug';
 
 const context = { message: 'Hello World' };
 
-console.log(template(context));  // <p>Hello World</p>
+console.log(templateFn(context));  // <p>Hello World</p>
 ```
 
-or by renaming the template to 'template.static.pug'
+or rename it for static compilation and import it as string:
 
 ```js
-import template from './template.static.pug';
+import htmlString from './template.static.pug';
 
-console.log(template);  // <p>Hello World</p>
+console.log(htmlString);  // <p>Hello World</p>
 ```
 
-and build with something like...
+Build with something like...
 
 ```js
 import { rollup } from 'rollup';
@@ -61,7 +61,6 @@ rollup({
   entry: 'src/main.js',
   plugins: [
     pug({
-      // your options here
       locals: { message: 'Hello World' }
     })
   ]
@@ -76,59 +75,33 @@ That's it.
 In addition to the regular pug options, the plugin defines these:
 
 - `staticPattern` - Regex for files to compile and evaluate at build time to export plain HTML.
-- `locals` - Plain JavaScript object with values passed to the compiler for static compilation.
+- `locals` - Plain JavaScript object with values passed to the compiler for static compilation (Deprecated).
 - `include` - minimatch or array of minimatch with files that should be included by default.
 - `exclude` - minimatch or array of minimatch with files that should be excluded by default.
 - `extensions` - Array of extensions to process (don't use wildcards here).
 - `pugRuntime` - Custom Pug runtime filename (See note).
 - `sourceMap` - Enabled by default.
 
-**Tip:** Use `staticPattern: /\S/` to evaluate all the templates at build time.
+**TIP:** Use `staticPattern: /\S/` to evaluate all the templates at build time.
 
-**Note:**
+### Be carefull
 
-The `pugRuntime` option can be set to `false` to avoid importing the runtime, but you must provide an equivalent accessible to the template:
+The parameter passed to the static templates is a shallow copy of the plugin options. Do not change it unless you know what you doing.
 
-```js
-  // in rollup.config.js
-   ...
-   plugins: [
-     pug({ pugRuntime: false })
-   ]
-```
-
-your .pug files:
-```jade
-- import pug from 'runtime'
-p= name
-//- ...etc
-```
-
-or you can name it in the config:
-```js
-  // in rollup.config.js
-   ...
-   plugins: [
-     pug({ pugRuntime: 'runtime' })
-   ]
-```
-
-and write your template as normal.
-
-Search for "pugRuntime" in the `test/run.js` file to see examples.
+When a template matches the `staticPattern` regex, the template is executed at complie-time and you load the resulting string through `import` at runtime, so it will not have access to runtime variables or methods. Instead, the plugin passes its options to the template at compile-time.
 
 
-## Pug Options
+## Default Options
 
 The plugin has preset the following options:
 
 ```js
 {
   doctype: 'html',
-  basedir: absolute(entry),       // absolute path of your rollup `entry` file
+  basedir: absolute(input),       // absolute path of the rollup `input` option
   compileDebug: false,            // `true` is recommended for development
   sourceMap: true,                // with or without compileDebug option
-  inlineRuntimeFunctions: false,  // can be `false` now
+  inlineRuntimeFunctions: false,  // use the pug runtime
   extensions: ['.pug', '.jade'],
   staticPattern: /\.static\.(?:pug|jade)$/
 }
@@ -136,28 +109,54 @@ The plugin has preset the following options:
 
 See the full list and explanation in the [API Documentation](https://pugjs.org/api/reference.html) of the pug site.
 
+Note: The default of `staticPattern` was defined to be compatibile with the old Jade plugin and so it has remained, but I prefer `/\.html\.pug$/`.
+
+
+## Custom runtime
+
+The `pugRuntime` option can be set to `false` to avoid importing the runtime, but you must provide an equivalent `pug` object accessible to the template:
+
+Disable the predefined runtime in rollup.config.js
+```js
+  ...
+  plugins: [
+    pug({ pugRuntime: false })
+  ]
+```
+
+and import the yours in your .pug files
+```jade
+- import pug from 'my-runtime'
+p= name
+//- ...etc
+```
+
+but the recommended option is name it in the config:
+```js
+  // in rollup.config.js
+   ...
+   plugins: [
+     pug({ pugRuntime: 'my-runtime' })
+   ]
+```
+
+Search for "pugRuntime" in the `test/run.js` file to see examples.
+
 
 ## What's New
 
-### Added
-- Typescript definitions
-- Watch the included files in static templates.
-- AppVeyor tests.
-
-### Changed
-- peerDependencies has rollup>=0.61 to allow dependency detection (see Rollup [#2259](https://github.com/rollup/rollup/pull/2259))
-- Updated devDependencies
-- Now the development of this plugin uses rollup v0.66 and Typescript v3.0
-
-### Removed
-- Dependency on rollup-plugin-buble as Rollup does not depends on it.
-
-See the [CHANGELOG](CHANGELOG.md) for more changes.
+See the [CHANGELOG](CHANGELOG.md) for changes.
 
 
-## Licence
+## Support my Work
 
-The [MIT](LICENSE) license.
+I'm a full-stack developer with more than 20 year of experience and I try to share most of my work for free and help others, but this takes a significant amount of time and effort so, if you like my work, please consider...
+
+[![Buy Me a Coffee][bmc-image]][bmc-url]
+
+Of course, feedback, PRs stars, and smiles are also welcome :)
+
+Thanks for your support!
 
 [build-image]:    https://travis-ci.org/aMarCruz/rollup-plugin-pug.svg?branch=master
 [build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-pug
@@ -167,3 +166,5 @@ The [MIT](LICENSE) license.
 [npm-url]:        https://www.npmjs.com/package/rollup-plugin-pug
 [license-image]:  https://img.shields.io/npm/l/express.svg
 [license-url]:    https://github.com/aMarCruz/rollup-plugin-pug/blob/master/LICENSE
+[bmc-image]:      https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
+[bmc-url]:        https://www.buymeacoffee.com/aMarCruz
