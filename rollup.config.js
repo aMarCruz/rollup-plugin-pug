@@ -12,21 +12,13 @@ const banner =
 export default {
   input: 'src/index.ts',
   plugins: [
-    typescript({ target: 'es6' }),
+    typescript(),
   ],
   external,
-  output: [
-    {
-      file: pkgjson.module,
-      format: 'es',
-      banner,
-      interop: false,
-    },
-    {
-      file: pkgjson.main,
-      format: 'cjs',
-      banner,
-      interop: false,
-    },
-  ],
+  output: {
+    file: pkgjson.main,
+    format: 'cjs',
+    banner,
+    interop: false,
+  },
 }

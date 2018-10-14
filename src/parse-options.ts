@@ -31,6 +31,7 @@ export function parseOptions (options: Partial<PugPluginOpts>): ParsedOptions {
     'Math',
     'Number',
     'Object',
+    'Promise',
     'RegExp',
     'String',
     'Symbol',

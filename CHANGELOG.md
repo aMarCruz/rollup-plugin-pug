@@ -1,9 +1,9 @@
 # Changes to rollup-plugin-pug
 
-## [Unreleased]
+## [1.1.0] - 2018-10-14
 
 ### Added
-- Add `Object` and `Symbol` to the predefined globals.
+- Add `Promise`, `Object` and `Symbol` to the predefined globals.
 
 ### Changed
 - Deprecate the `local` option as the plugin passes all the options to static templates.
@@ -13,6 +13,7 @@
 
 ### Removed
 - Unused `assign` function, now the plugin uses object spread.
+- Removed the ES6 version, seems rollup does not use it.
 
 ## [1.0.0] - 2018-09-18
 

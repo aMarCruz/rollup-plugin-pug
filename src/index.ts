@@ -119,7 +119,9 @@ export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
           basedir: config.basedir,
           keepDebugLines: config.compileDebug,
         })
-        return { code: bundle.data, map: bundle.map, dependencies }
+
+        // HACK: 'as any' to avoid conflict with wrong rollup typings
+        return { code: bundle.data, map: bundle.map as any, dependencies }
       }
 
       return { code: body, map: null, dependencies }

@@ -241,6 +241,7 @@ function pugPlugin(options) {
                     basedir: config.basedir,
                     keepDebugLines: config.compileDebug,
                 });
+                // HACK: 'as any' to avoid conflict with wrong rollup typings
                 return { code: bundle.data, map: bundle.map, dependencies };
             }
             return { code: body, map: null, dependencies };

@@ -3,7 +3,6 @@
   "version": "1.0.1",
   "description": "Transforms Pug (aka Jade) templates to ES6 modules.",
   "main": "dist/rollup-plugin-pug.js",
-  "module": "dist/rollup-plugin-pug.es.js",
   "scripts": {
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- test/run.js",
     "pretest": "npm run build && rimraf ./test/~tmp/*",
@@ -30,7 +29,7 @@
     "url": "git+https://github.com/aMarCruz/rollup-plugin-pug.git"
   },
   "dependencies": {
-    "gen-pug-source-map": "^0.1.2",
+    "gen-pug-source-map": "^1.0.0",
     "pug": "^2.0.3",
     "pug-runtime": "^2.0.4",
     "rollup-pluginutils": "^2.3.2"

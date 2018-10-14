@@ -1,5 +1,5 @@
 // Pug options
-declare type PugOwnOpts = {
+interface PugPluginOpts {
   /**
    * The root directory of all absolute inclusion.
    *
@@ -13,7 +13,7 @@ declare type PugOwnOpts = {
    * It is enabled by default, unless used with Express in production mode.
    * @default false
    */
-  compileDebug: boolean,
+  compileDebug?: boolean,
   /**
    * If set to `true`, the tokens and function body are logged to stdout.
    * @default false
@@ -25,12 +25,7 @@ declare type PugOwnOpts = {
    * See [doctype documentation](https://pugjs.org/language/doctype.html#doctype-option) for more information.
    * @default "html"
    */
-  doctype: string,
-  /**
-   * Do not use, this will be overwritten with the full path of the file
-   * being compiled.
-   */
-  filename?: string,
+  doctype?: string,
   /**
    * Hash table of [custom filters](https://pugjs.org/language/filters.html#custom-filters).
    * @default undefined
@@ -40,14 +35,14 @@ declare type PugOwnOpts = {
    * List of global names to make accessible in templates.
    *
    * _NOTE: The default ones with be merged with your globals, if any._
-   * @default ['String', 'Number', 'Boolean', 'Date', 'Array', 'Function', 'Math', 'RegExp']
+   * @default ['Array','Boolean','Date','Function','Math','Number','Object','RegExp','String','Symbol']
    */
-  globals: string[],
+  globals?: string[],
   /**
    * Inline runtime functions instead of `import`-ing them from a shared version.
    * @default false
    */
-  inlineRuntimeFunctions: boolean,
+  inlineRuntimeFunctions?: boolean,
   /**
    * Adds whitespace to the resulting HTML to make it easier for a human to read using `'  '`
    * as indentation. If a string is specified, that will be used as indentation instead
@@ -66,10 +61,9 @@ declare type PugOwnOpts = {
    * @default false
    */
   self?: boolean,
-}
 
-// Rollup & plugin options
-declare type PugPluginOpts = PugOwnOpts & {
+  // Rollup & plugin options
+
   /**
    * [minimatch](https://www.npmjs.com/package/minimatch) or array of minimatch
    * with files that should be included by default.
@@ -84,7 +78,7 @@ declare type PugPluginOpts = PugOwnOpts & {
   exclude?: string | string[],
   /**
    * Array of extensions to process (don't use wildcards here).
-   * @default ['.pug', '.jade']
+   * @default ['.pug','.jade']
    */
   extensions?: string[],
   /**
@@ -92,24 +86,24 @@ declare type PugPluginOpts = PugOwnOpts & {
    * @default {}
    * @deprecated since v1.0.1
    */
-  locals: { [k: string]: any },
+  locals?: { [k: string]: any },
   /**
    * Custom Pug runtime filename.
    * This option can be set to `false` to avoid importing the runtime, but you must
    * provide an equivalent `import` accessible to the template.
    * @default "./node_modules/rollup-plugin-pug/runtime.es.js"
    */
-  pugRuntime: string,
+  pugRuntime?: string | boolean,
   /**
    * Honors the Rollup `sourceMap` option.
    * @default true
    */
-  sourceMap: boolean,
+  sourceMap?: boolean,
   /**
    * Regex for files to compile and evaluate at build time to export plain HTML.
    * @default /\.static\.(?:pug|jade)$/
    */
-  staticPattern: RegExp,
+  staticPattern?: RegExp,
 }
 
 declare module "rollup-plugin-pug" {
