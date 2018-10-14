@@ -1,5 +1,5 @@
 /**
- * rollup-plugin-pug v1.0.0
+ * rollup-plugin-pug v1.0.1
  * @author aMarCruz'
  * @license MIT'
  */
@@ -9,28 +9,6 @@ var path = require('path');
 var rollupPluginutils = require('rollup-pluginutils');
 var pug = require('pug');
 var genPugSourceMap = require('gen-pug-source-map');
-
-/**
- * Object.assign like function, but always converts falsy `dest` to object.
- *
- * @param dest - An object or falsy value
- * @returns Object with merged properties
- */
-const assign = (dest, ...args) => {
-    dest = dest ? Object(dest) : {};
-    for (let i = 0; i < args.length; i++) {
-        const src = args[i];
-        // istanbul ignore else
-        if (src) {
-            const keys = Object.keys(src);
-            for (let j = 0; j < keys.length; j++) {
-                const p = keys[j];
-                dest[p] = src[p];
-            }
-        }
-    }
-    return dest;
-};
 
 function parseOptions(options) {
     options = options || {};
@@ -50,7 +28,18 @@ function parseOptions(options) {
         pugRuntime = '';
     }
     // v1.0.3 add default globals to the user defined set
-    const globals = ['String', 'Number', 'Boolean', 'Date', 'Array', 'Function', 'Math', 'RegExp'];
+    const globals = [
+        'Array',
+        'Boolean',
+        'Date',
+        'Function',
+        'Math',
+        'Number',
+        'Object',
+        'RegExp',
+        'String',
+        'Symbol',
+    ];
     // Merge the user globals with the predefined ones
     if (options.globals && Array.isArray(options.globals)) {
         options.globals.forEach((g) => {
@@ -64,19 +53,8 @@ function parseOptions(options) {
         basedir = path.resolve(basedir);
     }
     // Shallow copy of user options & defaults
-    return assign({
-        doctype: 'html',
-        compileDebug: false,
-        staticPattern: /\.static\.(?:pug|jade)$/,
-        inlineRuntimeFunctions: false,
-        locals: {},
-    }, options, {
-        basedir,
-        globals,
-        runtimeImport,
-        pugRuntime,
-        sourceMap: options.sourceMap !== false,
-    });
+    return Object.assign({ doctype: 'html', compileDebug: false, staticPattern: /\.static\.(?:pug|jade)$/, inlineRuntimeFunctions: false, locals: {} }, options, { basedir,
+        globals, _runtimeImport: runtimeImport, pugRuntime, sourceMap: options.sourceMap !== false });
 }
 
 const RE_IMPORTS = /^([ \t]*-)[ \t]*(import[ \t*{'"].*)/gm;
@@ -163,7 +141,7 @@ const makeFilter = (opts, exts) => {
     }
     // Create the normalized extension list
     const extensions = exts.map((e) => (e[0] !== '.' ? `.${e}` : e));
-    return (id) => filter(id) && extensions.indexOf(path.extname(id)) > -1;
+    return (id) => (filter(id) && extensions.indexOf(path.extname(id)) > -1);
 };
 
 /**
@@ -183,7 +161,6 @@ const arrIfDeps = (inArr) => {
     }
 };
 
-// rollup-plugin-pug --------------------------------------
 function pugPlugin(options) {
     // prepare extensions to match with the extname() result
     const filter = makeFilter(options, ['.pug', '.jade']);
@@ -197,7 +174,7 @@ function pugPlugin(options) {
         name: 'rollup-plugin-pug',
         options(opts) {
             if (!config.basedir) {
-                let basedir = opts.input;
+                const basedir = opts.input;
                 // istanbul ignore else
                 if (basedir && typeof basedir == 'string') {
                     config.basedir = path.dirname(path.resolve(basedir));
@@ -213,7 +190,7 @@ function pugPlugin(options) {
          * @param id
          */
         resolveId(id) {
-            return id === config.runtimeImport && config.pugRuntime || null;
+            return id === config._runtimeImport && config.pugRuntime || null;
         },
         transform(code, id) {
             if (!filter(id)) {
@@ -221,30 +198,44 @@ function pugPlugin(options) {
             }
             const isStatic = matchStaticPattern(id);
             const pugOpts = clonePugOpts(config, id);
-            const output = [];
             let body;
             let map;
             let fn;
             if (isStatic) {
-                const staticOpts = assign(null, config.locals, clone(config));
-                staticOpts.filename = id;
+                /*
+                  This template is executed now and, at runtime, will be loaded through
+                  `import` so it will not have access to runtime variables or methods.
+                  Instead, we use here the `local` variables and the compile-time options.
+                */
+                const staticOpts = Object.assign({}, config.locals, config, { filename: id });
                 fn = pug.compile(code, pugOpts);
-                body = `export default ${JSON.stringify(fn(staticOpts))}`;
+                body = fn(staticOpts);
+                body = `export default ${JSON.stringify(body)};\n`;
             }
             else {
+                /*
+                  This template will generate a module with a function to be executed at
+                  runtime. It will be user responsibility to pass the correct parameters
+                  to the function, here we only take care of the `imports`, incluiding the
+                  pug runtime.
+                */
+                const imports = [];
                 if (config.sourceMap) {
                     pugOpts.compileDebug = map = true;
                 }
-                code = moveImports(code, output);
+                // move the imports from the template to the top of the output queue
+                code = moveImports(code, imports);
+                // get function body and dependencies
                 fn = pug.compileClientWithDependenciesTracked(code, pugOpts);
                 body = fn.body.replace('function template(', '\nexport default function(');
-                if (config.runtimeImport && /\bpug\./.test(body)) {
-                    output.unshift(`import pug from '${config.runtimeImport}';`);
+                // put the pung-runtime import as the first of the queue, if neccesary
+                if (config._runtimeImport && /\bpug\./.test(body)) {
+                    imports.unshift(`import pug from '${config._runtimeImport}';`);
                 }
+                // convert imports into string and add the template function
+                body = imports.join('\n') + `${body};\n`;
             }
             const dependencies = arrIfDeps(fn.dependencies);
-            output.push(body);
-            body = output.join('\n') + ';\n';
             if (map) {
                 const bundle = genPugSourceMap(id, body, {
                     basedir: config.basedir,
@@ -256,5 +247,6 @@ function pugPlugin(options) {
         },
     };
 }
+//#endregion
 
 module.exports = pugPlugin;

@@ -101,10 +101,6 @@ declare type PugPluginOpts = PugOwnOpts & {
    */
   pugRuntime: string,
   /**
-   * _Internal use_
-   */
-  runtimeImport: string,
-  /**
    * Honors the Rollup `sourceMap` option.
    * @default true
    */

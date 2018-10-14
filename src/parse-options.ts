@@ -1,6 +1,8 @@
 import { resolve } from 'path'
 
-export function parseOptions (options: Partial<PugPluginOpts>): PugPluginOpts {
+type ParsedOptions = PugPluginOpts &  { _runtimeImport: string }
+
+export function parseOptions (options: Partial<PugPluginOpts>): ParsedOptions {
   options = options || {}
 
   // Get runtimeImport & pugRuntime values
@@ -58,7 +60,7 @@ export function parseOptions (options: Partial<PugPluginOpts>): PugPluginOpts {
     ...options,
     basedir,
     globals,
-    runtimeImport,
+    _runtimeImport: runtimeImport,
     pugRuntime,
     sourceMap: options.sourceMap !== false,
   }

@@ -8,7 +8,7 @@ import { makeFilter } from './utils/make-filter'
 import { arrIfDeps } from './utils/arr-if-deps'
 
 // typings
-import { Plugin, InputOptions, RawSourceMap } from '../node_modules/rollup/dist/rollup'
+import { Plugin, InputOptions } from '../node_modules/rollup/dist/rollup'
 
 interface pugFnOrStr {
   (opts: any): string
@@ -16,7 +16,9 @@ interface pugFnOrStr {
   dependencies: string[]
 }
 
-// rollup-plugin-pug --------------------------------------
+//#region Plugin -------------------------------------------------------------
+
+const runtimeImport = '\0pug-runtime'
 
 export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
 
@@ -54,7 +56,7 @@ export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
      * @param id
      */
     resolveId (id: string) {
-      return id === config.runtimeImport && config.pugRuntime || null
+      return id === config._runtimeImport && config.pugRuntime || null
     },
 
     transform (code: string, id: string) {
@@ -102,8 +104,8 @@ export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
         body = fn.body.replace('function template(', '\nexport default function(')
 
         // put the pung-runtime import as the first of the queue, if neccesary
-        if (config.runtimeImport && /\bpug\./.test(body)) {
-          imports.unshift(`import pug from '${config.runtimeImport}';`)
+        if (config._runtimeImport && /\bpug\./.test(body)) {
+          imports.unshift(`import pug from '${config._runtimeImport}';`)
         }
 
         // convert imports into string and add the template function
@@ -124,3 +126,5 @@ export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
     },
   }
 }
+
+//#endregion

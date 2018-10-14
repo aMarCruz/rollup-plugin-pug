@@ -7,8 +7,9 @@
 
 ### Changed
 - Deprecate the `local` option as the plugin passes all the options to static templates.
+- Hide the internal `runtimeImport` variable.
 - Revision of the `transform` method, add comments.
-- Avoid type coersion (allows Typescript error detection)
+- Avoid type coersion (allows Typescript error detection).
 
 ### Removed
 - Unused `assign` function, now the plugin uses object spread.
