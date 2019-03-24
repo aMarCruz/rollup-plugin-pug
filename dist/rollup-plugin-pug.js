@@ -182,7 +182,6 @@ function pugPlugin(options) {
                     config.basedir = path.dirname(path.resolve(basedir));
                 }
                 else {
-                    this.warn('Rollup `input` is not a string, using working dir as `basedir`');
                     config.basedir = path.resolve('.');
                 }
             }

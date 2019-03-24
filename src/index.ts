@@ -43,7 +43,6 @@ export default function pugPlugin (options: Partial<PugPluginOpts>): Plugin {
         if (basedir && typeof basedir == 'string') {
           config.basedir = dirname(resolve(basedir))
         } else {
-          this.warn('Rollup `input` is not a string, using working dir as `basedir`')
           config.basedir = resolve('.')
         }
       }
