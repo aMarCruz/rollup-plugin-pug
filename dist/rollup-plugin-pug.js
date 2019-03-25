@@ -1,5 +1,5 @@
 /**
- * rollup-plugin-pug v1.1.0
+ * rollup-plugin-pug v1.1.1
  * @author aMarCruz'
  * @license MIT'
  */

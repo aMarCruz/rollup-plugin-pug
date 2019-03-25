@@ -1,18 +1,18 @@
 # rollup-plugin-pug
 
+[![License][license-image]][license-url]
+[![npm Version][npm-image]][npm-url]
 [![Linux build Status][build-image]][build-url]
 [![Windows build status][appveyor-image]][appveyor-url]
-[![npm Version][npm-image]][npm-url]
-[![License][license-image]][license-url]
 
 [Rollup](https://github.com/rollup/rollup) plugin that transforms [Pug](https://pugjs.org) v2 templates to ES6 modules.
 
-* Dynamic generation of HTML. Static HTML is optional and configurable.
-* Automatic `import` of the pug-runtime in your bundle, if required.
-* Automatic `import` of template `extends` and `includes`.
-* Source map support.
-* Support for ES6 `import` statements (moved out of the template).
-* Typescript v3.x definitions.
+- Dynamic generation of HTML. Static HTML is optional and configurable.
+- Automatic `import` of the pug-runtime in your bundle, if required.
+- Automatic `import` of template `extends` and `includes`.
+- Source map support.
+- Support for ES6 `import` statements (moved out of the template).
+- Typescript v3.x definitions.
 
 ## IMPORTANT
 
@@ -69,7 +69,6 @@ rollup({
 
 That's it.
 
-
 ## Options
 
 In addition to the regular pug options, the plugin defines these:
@@ -89,7 +88,6 @@ In addition to the regular pug options, the plugin defines these:
 The parameter passed to the static templates is a shallow copy of the plugin options. Do not change it unless you know what you doing.
 
 When a template matches the `staticPattern` regex, the template is executed at complie-time and you load the resulting string through `import` at runtime, so it will not have access to runtime variables or methods. Instead, the plugin passes its options to the template at compile-time.
-
 
 ## Default Options
 
@@ -111,12 +109,12 @@ See the full list and explanation in the [API Documentation](https://pugjs.org/a
 
 Note: The default of `staticPattern` was defined to be compatibile with the old Jade plugin and so it has remained, but I prefer `/\.html\.pug$/`.
 
-
 ## Custom runtime
 
 The `pugRuntime` option can be set to `false` to avoid importing the runtime, but you must provide an equivalent `pug` object accessible to the template:
 
 Disable the predefined runtime in rollup.config.js
+
 ```js
   ...
   plugins: [
@@ -125,6 +123,7 @@ Disable the predefined runtime in rollup.config.js
 ```
 
 and import the yours in your .pug files
+
 ```jade
 - import pug from 'my-runtime'
 p= name
@@ -132,6 +131,7 @@ p= name
 ```
 
 but the recommended option is name it in the config:
+
 ```js
   // in rollup.config.js
    ...
@@ -142,19 +142,23 @@ but the recommended option is name it in the config:
 
 Search for "pugRuntime" in the `test/run.js` file to see examples.
 
-
 ## What's New
 
-See the [CHANGELOG](CHANGELOG.md) for changes.
+### v1.1.1
 
+- #14: fix (this.warn is not a function) - thanks to @leptonix
+
+See the [CHANGELOG](CHANGELOG.md) for more changes.
 
 ## Support my Work
 
 I'm a full-stack developer with more than 20 year of experience and I try to share most of my work for free and help others, but this takes a significant amount of time and effort so, if you like my work, please consider...
 
-[![Buy Me a Coffee][bmc-image]][bmc-url]
+<!-- markdownlint-disable MD033 -->
 
-Of course, feedback, PRs stars, and smiles are also welcome :)
+[<img src="https://amarcruz.github.io/images/kofi_blue.png" height="36" title="Support Me on Ko-fi" />][kofi-url]
+
+Of course, feedback, PRs, and stars are also welcome 🙃
 
 Thanks for your support!
 
@@ -166,5 +170,4 @@ Thanks for your support!
 [npm-url]:        https://www.npmjs.com/package/rollup-plugin-pug
 [license-image]:  https://img.shields.io/npm/l/express.svg
 [license-url]:    https://github.com/aMarCruz/rollup-plugin-pug/blob/master/LICENSE
-[bmc-image]:      https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png
-[bmc-url]:        https://www.buymeacoffee.com/aMarCruz
+[kofi-url]:       https://ko-fi.com/C0C7LF7I
