@@ -7,9 +7,10 @@
     "test": "istanbul cover ./node_modules/mocha/bin/_mocha -- test/run.js",
     "pretest": "npm run build && rimraf ./test/~tmp/*",
     "build": "rimraf ./dist/* && node ./build-rt.js && rollup -c",
-    "prepublish": "npm run lint && npm test",
+    "prepublish": "npm run snyk-protect && npm run lint && npm test",
     "postinstall": "node ./build-rt.js",
-    "lint": "eslint src/**/*.ts test/run.js"
+    "lint": "eslint src/**/*.ts test/run.js",
+    "snyk-protect": "snyk protect"
   },
   "keywords": [
     "rollup",
@@ -35,7 +36,8 @@
     "gen-pug-source-map": "^1.0.0",
     "pug": "^2.0.3",
     "pug-runtime": "^2.0.4",
-    "rollup-pluginutils": "^2.3.3"
+    "rollup-pluginutils": "^2.3.3",
+    "snyk": "^1.319.1"
   },
   "devDependencies": {
     "@typescript-eslint/parser": "^1.5.0",
@@ -51,5 +53,6 @@
   },
   "peerDependencies": {
     "rollup": ">=0.61"
-  }
+  },
+  "snyk": true
 }
