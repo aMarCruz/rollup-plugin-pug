@@ -33,7 +33,7 @@
   },
   "dependencies": {
     "gen-pug-source-map": "^1.0.0",
-    "pug": "^2.0.3",
+    "pug": "^3.0.0",
     "pug-runtime": "^2.0.4",
     "rollup-pluginutils": "^2.3.3"
   },
